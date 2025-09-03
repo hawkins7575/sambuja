@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -22,5 +23,49 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Noto Sans KR', Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .touch-target {
+    @apply min-w-[44px] min-h-[44px] p-2;
+  }
+  
+  .touch-feedback {
+    @apply transition-colors duration-100 active:bg-gray-100;
+  }
+  
+  .family-card {
+    @apply bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6;
+  }
+  
+  .nav-item {
+    @apply flex flex-col items-center py-2 px-2 sm:px-3 min-w-[44px] min-h-[44px] text-gray-600 active:text-blue-600 transition-colors;
+  }
+  
+  .nav-item.active {
+    @apply text-blue-600;
+  }
+
+  /* Mobile safe area utilities */
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  /* Mobile viewport handling */
+  .min-h-screen-mobile {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Better touch targets for mobile */
+  @media (max-width: 768px) {
+    .touch-target {
+      @apply min-w-[48px] min-h-[48px];
+    }
+  }
 }

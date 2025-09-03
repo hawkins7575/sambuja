@@ -1,0 +1,33 @@
+{
+  "name": "삼부자 가족 사이트",
+  "short_name": "삼부자",
+  "description": "아빠와 아들들을 위한 특별한 소통 공간",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/dad-avatar.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/eldest-avatar.png", 
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/youngest-avatar.png",
+      "sizes": "192x192", 
+      "type": "image/png"
+    }
+  ],
+  "orientation": "portrait",
+  "categories": ["social", "lifestyle"],
+  "lang": "ko",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false
+}
