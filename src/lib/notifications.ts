@@ -55,12 +55,14 @@ export class NotificationService {
     }
 
     try {
+      const applicationServerKey = this.urlBase64ToUint8Array(
+        // VAPID public key (실제 서비스에서는 환경변수로 관리)
+        'BMqSvZXhGiGqwGliGL7URhDMJEfGUiMWnLULXqJUZxRRoP_D_P1GKnYgx2YY_8YZy5GF2DgWLhJO'
+      );
+      
       const subscription = await this.registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(
-          // VAPID public key (실제 서비스에서는 환경변수로 관리)
-          'BMqSvZXhGiGqwGliGL7URhDMJEfGUiMWnLULXqJUZxRRoP_D_P1GKnYgx2YY_8YZy5GF2DgWLhJO'
-        )
+        applicationServerKey: applicationServerKey as BufferSource
       });
       
       console.log('Push subscription successful:', subscription);
@@ -72,7 +74,7 @@ export class NotificationService {
   }
 
   // 로컬 알림 표시 (즉시 표시용)
-  async showLocalNotification(title: string, body: string, data?: any): Promise<void> {
+  async showLocalNotification(title: string, body: string, data?: Record<string, unknown>): Promise<void> {
     const permission = await this.requestPermission();
     
     if (permission === 'granted') {
@@ -80,7 +82,6 @@ export class NotificationService {
         body,
         icon: '/dad-avatar.png',
         badge: '/dad-avatar.png',
-        vibrate: [100, 50, 100],
         data: data || { dateOfArrival: Date.now() },
         tag: 'sambuja-notification',
         requireInteraction: false,

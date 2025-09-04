@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { MessageCircle, Users, Calendar, Target, Heart, ArrowRight, Clock, CheckCircle } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
+import { useState, useEffect } from 'react';
+import { MessageCircle, Users, Calendar, Target, ArrowRight, Clock, CheckCircle } from 'lucide-react';
+import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,7 +14,7 @@ const mockLatestPosts = [
     id: '1',
     title: '오늘 회사에서 있었던 일',
     content: '오늘 회사에서 프레젠테이션을 성공적으로 마쳤어요! 여러분이 응원해줘서 용기가 났답니다. 감사해요 😊',
-    author: { id: '1', name: '아빠', role: 'dad' as const },
+    author: { id: '1', name: '아빠', role: 'dad' as const, email: 'dad@example.com', created_at: '2025-01-01' },
     target_audience: 'all' as const,
     created_at: '2025-09-02T10:30:00Z',
   },
@@ -22,7 +22,7 @@ const mockLatestPosts = [
     id: '2',
     title: '아빠, 축구 가르쳐줘서 고마워요!',
     content: '오늘 체육시간에 축구를 했는데 우리 팀이 이겼어요! 골도 한 개 넣었답니다.',
-    author: { id: '2', name: '짱남', role: 'eldest' as const },
+    author: { id: '2', name: '짱남', role: 'eldest' as const, email: 'eldest@example.com', created_at: '2025-01-01' },
     target_audience: 'dad' as const,
     created_at: '2025-09-02T14:15:00Z',
   },
@@ -33,7 +33,7 @@ const mockLatestHelp = [
     id: '1',
     title: '아빠, 수학 숙제 좀 도와주세요',
     description: '분수 계산이 너무 어려워요. 특히 통분하는 방법을 모르겠어요.',
-    requester: { id: '3', name: '막뚱이', role: 'youngest' as const },
+    requester: { id: '3', name: '막뚱이', role: 'youngest' as const, email: 'youngest@example.com', created_at: '2025-01-01' },
     status: 'open' as const,
     target_audience: 'dad' as const,
     created_at: '2025-09-02T09:00:00Z',
@@ -46,7 +46,7 @@ const mockLatestEvents = [
     title: '장남 축구 경기',
     description: '학교 대표팀 축구 경기가 있어요. 응원 와주세요!',
     start_date: '2025-09-05T15:00:00Z',
-    creator: { id: '2', name: '짱남', role: 'eldest' as const },
+    creator: { id: '2', name: '짱남', role: 'eldest' as const, email: 'eldest@example.com', created_at: '2025-01-01' },
     created_at: '2025-09-02T10:00:00Z',
   },
   {
@@ -54,7 +54,7 @@ const mockLatestEvents = [
     title: '가족 영화 관람',
     description: '주말에 온 가족이 함께 영화를 보러 가요!',
     start_date: '2025-09-08T19:30:00Z',
-    creator: { id: '3', name: '막뚱이', role: 'youngest' as const },
+    creator: { id: '3', name: '막뚱이', role: 'youngest' as const, email: 'youngest@example.com', created_at: '2025-01-01' },
     created_at: '2025-09-02T16:20:00Z',
   },
 ];
@@ -64,7 +64,7 @@ const mockLatestGoals = [
     id: '1',
     title: '매일 30분 운동하기',
     description: '건강한 몸을 만들기 위해 매일 30분씩 운동하기로 했어요.',
-    owner: { id: '1', name: '아빠', role: 'dad' as const },
+    owner: { id: '1', name: '아빠', role: 'dad' as const, email: 'dad@example.com', created_at: '2025-01-01' },
     progress: 65,
     completed: false,
     target_date: '2025-12-31',
@@ -74,7 +74,7 @@ const mockLatestGoals = [
     id: '2',
     title: '피아노 곡 하나 완주하기',
     description: '좋아하는 피아노 곡을 처음부터 끝까지 완벽하게 연주할 수 있도록 연습하기!',
-    owner: { id: '2', name: '짱남', role: 'eldest' as const },
+    owner: { id: '2', name: '짱남', role: 'eldest' as const, email: 'eldest@example.com', created_at: '2025-01-01' },
     progress: 100,
     completed: true,
     target_date: '2025-10-15',
@@ -82,71 +82,56 @@ const mockLatestGoals = [
   },
 ];
 
-const quickActions = [
-  {
-    title: '소통하기',
-    description: '가족과 이야기를 나눠보세요',
-    icon: MessageCircle,
-    href: '/communication',
-    color: 'bg-blue-500',
-  },
-  {
-    title: '일정 확인',
-    description: '오늘의 가족 일정을 확인하세요',
-    icon: Calendar,
-    href: '/schedule',
-    color: 'bg-green-500',
-  },
-  {
-    title: '목표 관리',
-    description: '개인 목표를 설정하고 관리하세요',
-    icon: Target,
-    href: '/goals',
-    color: 'bg-purple-500',
-  },
-  {
-    title: '도움 요청',
-    description: '도움이 필요할 때 언제든지',
-    icon: Users,
-    href: '/help',
-    color: 'bg-orange-500',
-  },
-];
+// const quickActions = [
+//   {
+//     title: '소통하기',
+//     description: '가족과 이야기를 나눠보세요',
+//     icon: MessageCircle,
+//     href: '/communication',
+//     color: 'bg-blue-500',
+//   },
+//   {
+//     title: '일정 확인',
+//     description: '오늘의 가족 일정을 확인하세요',
+//     icon: Calendar,
+//     href: '/schedule',
+//     color: 'bg-green-500',
+//   },
+//   {
+//     title: '목표 관리',
+//     description: '개인 목표를 설정하고 관리하세요',
+//     icon: Target,
+//     href: '/goals',
+//     color: 'bg-purple-500',
+//   },
+//   {
+//     title: '도움 요청',
+//     description: '도움이 필요할 때 언제든지',
+//     icon: Users,
+//     href: '/help',
+//     color: 'bg-orange-500',
+//   },
+// ];
 
 export default function Home() {
-  const { user, setUser } = useAuthStore();
-  const [posts] = useState(mockLatestPosts);
-  const [helpRequests] = useState(mockLatestHelp);
-  const [events] = useState(mockLatestEvents);
-  const [goals] = useState(mockLatestGoals);
+  const { user, setUser, users, loadUsers } = useAuthStore();
+  const { posts, events, goals, helpRequests, loadAllData, isDataLoading } = useAppStore();
 
-  const familyMembers = [
-    {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-  ];
+  useEffect(() => {
+    // 데이터 로드 (한 번만 실행)
+    loadAllData();
+    loadUsers(); // 사용자 데이터도 로드
+  }, []); // 의존성 배열을 비워서 한 번만 실행
 
-  const handleUserSelect = (selectedUser: any) => {
+  const handleUserSelect = (selectedUser: { id: string; name: string; role: 'dad' | 'eldest' | 'youngest'; email: string; created_at: string }) => {
     setUser(selectedUser);
   };
+
+  // 최근 데이터만 표시 (각각 최대 2개)
+  const recentPosts = posts.slice(0, 2);
+  const recentEvents = events.slice(0, 2);
+  const recentGoals = goals.slice(0, 2);
+  const recentHelpRequests = helpRequests.slice(0, 2);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -174,7 +159,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">삼부자 가족 사이트</h2>
             <p className="text-gray-600 mb-6">누구로 로그인 하시겠어요?</p>
             <div className="flex justify-center space-x-4">
-              {familyMembers.map((member) => (
+              {users.length > 0 ? users.map((member) => (
                 <button
                   key={member.id}
                   onClick={() => handleUserSelect(member)}
@@ -196,7 +181,11 @@ export default function Home() {
                     </span>
                   </div>
                 </button>
-              ))}
+              )) : (
+                <div className="text-center py-4 text-gray-500">
+                  사용자를 불러오는 중...
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -236,7 +225,12 @@ export default function Home() {
             </Link>
           </div>
         <div className="space-y-3">
-          {posts.slice(0, 2).map((post) => (
+          {isDataLoading ? (
+            <div className="text-center py-4 text-gray-500">데이터를 불러오는 중...</div>
+          ) : recentPosts.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">아직 게시글이 없습니다.</div>
+          ) : (
+            recentPosts.map((post) => (
             <div key={post.id} className="family-card hover:shadow-md transition-shadow">
               <div className="flex items-start space-x-3">
                 <Avatar user={post.author} size="sm" />
@@ -253,7 +247,8 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ))}
+          ))
+          )}
         </div>
         </div>
       )}
@@ -269,8 +264,13 @@ export default function Home() {
           </Link>
         </div>
         <div className="space-y-3">
-          {helpRequests.slice(0, 2).map((request) => (
-            <div key={request.id} className="family-card hover:shadow-md transition-shadow">
+          {isDataLoading ? (
+            <div className="text-center py-4 text-gray-500">데이터를 불러오는 중...</div>
+          ) : recentHelpRequests.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">아직 도움 요청이 없습니다.</div>
+          ) : (
+            recentHelpRequests.map((request) => (
+              <div key={request.id} className="family-card hover:shadow-md transition-shadow">
               <div className="flex items-start space-x-3">
                 <Avatar user={request.requester} size="sm" />
                 <div className="flex-1 min-w-0">
@@ -291,7 +291,8 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
         </div>
       )}

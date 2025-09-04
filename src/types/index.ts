@@ -47,6 +47,7 @@ export interface Goal {
   description?: string;
   target_date?: string;
   completed: boolean;
+  progress: number;
   owner_id: string;
   owner: User;
   created_at: string;
@@ -64,4 +65,15 @@ export interface HelpRequest {
   helper?: User;
   created_at: string;
   updated_at: string;
+}
+
+export interface ScheduleEvent {
+  id: string;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  owner_id: string;
+  owner: User;
+  created_at: string;
 }

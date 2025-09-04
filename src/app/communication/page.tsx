@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Filter, Search, MessageCircle, Heart, Reply } from 'lucide-react';
+import { Plus, Filter, Search, MessageCircle } from 'lucide-react';
 import { useAuthStore, useAppStore } from '@/lib/store';
 import { Comment } from '@/types';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
@@ -9,145 +9,19 @@ import CommentSection from '@/components/shared/CommentSection';
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 
-const mockPosts = [
-  {
-    id: '1',
-    title: '오늘 회사에서 있었던 일',
-    content: '오늘 회사에서 프레젠테이션을 성공적으로 마쳤어요! 여러분이 응원해줘서 용기가 났답니다. 감사해요 😊',
-    author_id: '1',
-    author: {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    target_audience: 'all' as const,
-    category: 'communication' as const,
-    created_at: '2025-09-02T10:30:00Z',
-    updated_at: '2025-09-02T10:30:00Z',
-  },
-  {
-    id: '2',
-    title: '아빠, 축구 가르쳐줘서 고마워요!',
-    content: '오늘 체육시간에 축구를 했는데 우리 팀이 이겼어요! 골도 한 개 넣었답니다. 아빠가 알려준 슈팅 방법이 도움이 됐어요!',
-    author_id: '2',
-    author: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    target_audience: 'dad' as const,
-    category: 'communication' as const,
-    created_at: '2025-09-02T14:15:00Z',
-    updated_at: '2025-09-02T14:15:00Z',
-  },
-  {
-    id: '3',
-    title: '형아, 같이 책 읽을래?',
-    content: '도서관에서 재미있어 보이는 모험 소설을 빌려왔어요. 주인공이 용감해서 좋아요! 형아도 같이 읽으면 좋을 것 같아요.',
-    author_id: '3',
-    author: {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-    target_audience: 'eldest' as const,
-    category: 'communication' as const,
-    created_at: '2025-09-02T16:45:00Z',
-    updated_at: '2025-09-02T16:45:00Z',
-  },
-  {
-    id: '4',
-    title: '막둥아, 오늘 하루 어땠어?',
-    content: '학교에서 재미있는 일 있었니? 새로 사귄 친구는 어떤 아이인지 궁금해. 저녁에 같이 이야기하자!',
-    author_id: '1',
-    author: {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    target_audience: 'youngest' as const,
-    category: 'communication' as const,
-    created_at: '2025-09-02T18:20:00Z',
-    updated_at: '2025-09-02T18:20:00Z',
-  },
-];
-
-const mockComments: Comment[] = [
-  {
-    id: '1',
-    content: '오늘 정말 수고하셨어요! 축하해요 아빠!',
-    target_type: 'post',
-    target_id: '1',
-    author_id: '2',
-    author: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T11:00:00Z',
-  },
-  {
-    id: '2',
-    content: '저도 같이 책 읽고 싶어요!',
-    target_type: 'post',
-    target_id: '3',
-    author_id: '1',
-    author: {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T17:00:00Z',
-  },
-];
 
 export default function CommunicationPage() {
-  const { user } = useAuthStore();
-  const { posts, setPosts, selectedAuthor, setSelectedAuthor } = useAppStore();
+  const { user, users } = useAuthStore();
+  const { posts, setPosts, selectedAuthor, setSelectedAuthor, loadAllData } = useAppStore();
   const [showWriteForm, setShowWriteForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [newPost, setNewPost] = useState({ title: '', content: '', target_audience: 'all', author_id: '' });
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const [comments, setComments] = useState<Comment[]>([]);
 
-  const familyMembers = [
-    {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-  ];
 
   useEffect(() => {
-    setPosts(mockPosts);
-  }, [setPosts]);
+    loadAllData();
+  }, [loadAllData]);
 
   const filteredPosts = posts.filter(post => {
     const matchesAuthor = selectedAuthor === 'all' || 
@@ -165,7 +39,7 @@ export default function CommunicationPage() {
   const handleSubmitPost = async () => {
     if (!user || !newPost.title.trim() || !newPost.content.trim() || !newPost.author_id) return;
     
-    const selectedAuthor = familyMembers.find(member => member.id === newPost.author_id) || user;
+    const selectedAuthor = users.find(member => member.id === newPost.author_id) || user;
     
     const post = {
       id: Date.now().toString(),
@@ -193,7 +67,7 @@ export default function CommunicationPage() {
   };
 
   const getTargetAudienceOptions = (authorId: string) => {
-    const selectedAuthor = familyMembers.find(member => member.id === authorId);
+    const selectedAuthor = users.find(member => member.id === authorId);
     if (!selectedAuthor) return [{ value: 'all', label: '모두에게' }];
     
     const options = [{ value: 'all', label: '모두에게' }];
@@ -282,7 +156,7 @@ export default function CommunicationPage() {
               ].map((filter) => (
                 <button
                   key={filter.key}
-                  onClick={() => setSelectedAuthor(filter.key as any)}
+                  onClick={() => setSelectedAuthor(filter.key as 'dad' | 'eldest' | 'youngest' | 'all')}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                     selectedAuthor === filter.key
                       ? 'bg-blue-500 text-white'
@@ -328,7 +202,7 @@ export default function CommunicationPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">누가 작성하는 글인가요?</label>
               <div className="flex flex-wrap gap-2">
-                {familyMembers.map((member) => (
+                {users.map((member) => (
                   <button
                     key={member.id}
                     type="button"

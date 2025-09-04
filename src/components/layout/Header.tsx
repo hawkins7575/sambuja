@@ -5,7 +5,6 @@ import { useAuthStore } from '@/lib/store';
 import { getRoleName, getRoleColor } from '@/lib/utils';
 import TopNavigation from './TopNavigation';
 import NotificationButton from '@/components/shared/NotificationButton';
-import Image from 'next/image';
 
 export default function Header() {
   const { user } = useAuthStore();

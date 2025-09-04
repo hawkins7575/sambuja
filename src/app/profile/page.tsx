@@ -1,39 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { profileQuestions, getDefaultAnswers, ProfileAnswer } from '@/lib/profileTemplate';
-import { getProfileByUserId, updateProfileData } from '@/lib/mockProfileData';
 import ProfileCard from '@/components/profile/ProfileCard';
 import Avatar from '@/components/shared/Avatar';
 
-const familyMembers = [
-  {
-    id: '1',
-    name: '아빠',
-    role: 'dad' as const,
-    email: 'dad@example.com',
-    created_at: '2025-01-01',
-  },
-  {
-    id: '2',
-    name: '짱남',
-    role: 'eldest' as const,
-    email: 'eldest@example.com',
-    created_at: '2025-01-01',
-  },
-  {
-    id: '3',
-    name: '막뚱이',
-    role: 'youngest' as const,
-    email: 'youngest@example.com',
-    created_at: '2025-01-01',
-  },
-];
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
+  const { user, users } = useAuthStore();
   const [selectedMember, setSelectedMember] = useState<string>('');
   const [profileAnswers, setProfileAnswers] = useState<{ [userId: string]: ProfileAnswer[] }>({});
 
@@ -42,24 +17,23 @@ export default function ProfilePage() {
       setSelectedMember(user.id);
     }
 
-    // 모든 가족 구성원의 프로필 데이터 로드
+    // 모든 가족 구성원의 기본 프로필 데이터 로드
     const allAnswers: { [userId: string]: ProfileAnswer[] } = {};
-    familyMembers.forEach(member => {
-      const profile = getProfileByUserId(member.id);
-      allAnswers[member.id] = profile ? profile.answers : getDefaultAnswers();
+    users.forEach(member => {
+      allAnswers[member.id] = getDefaultAnswers();
     });
     setProfileAnswers(allAnswers);
-  }, [user]);
+  }, [user, users]);
 
   const handleUpdateAnswers = (userId: string, answers: ProfileAnswer[]) => {
-    updateProfileData(userId, answers);
+    // 로컬 상태만 업데이트 (실제 서버 저장은 추후 구현)
     setProfileAnswers(prev => ({
       ...prev,
       [userId]: answers,
     }));
   };
 
-  const selectedMemberData = familyMembers.find(member => member.id === selectedMember);
+  const selectedMemberData = users.find(member => member.id === selectedMember);
   const selectedMemberAnswers = profileAnswers[selectedMember] || getDefaultAnswers();
 
   if (!user) return <div>로딩 중...</div>;
@@ -70,7 +44,7 @@ export default function ProfilePage() {
       {/* 가족 구성원 선택 탭 */}
       <div className="family-card p-2">
         <div className="flex space-x-1 bg-gray-100 rounded-xl p-1">
-          {familyMembers.map((member) => (
+          {users.map((member) => (
             <button
               key={member.id}
               onClick={() => setSelectedMember(member.id)}

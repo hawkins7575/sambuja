@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit, Save, X, Camera, ExternalLink } from 'lucide-react';
+import { Edit, Save, X, ExternalLink } from 'lucide-react';
 import { User } from '@/types';
 import { getRoleName, getRoleColor } from '@/lib/utils';
 import { ProfileQuestion, ProfileAnswer, findAnswerByQuestionId } from '@/lib/profileTemplate';

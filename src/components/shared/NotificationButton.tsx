@@ -17,7 +17,7 @@ export default function NotificationButton() {
     
     // 서비스 워커 등록
     notificationService.registerServiceWorker();
-  }, []);
+  }, [notificationService]);
 
   const toggleNotifications = async () => {
     if (isLoading) return;

@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, X, Users } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
+import { Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, X, Users, Edit, Trash2 } from 'lucide-react';
+import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
-import { Comment } from '@/types';
+import { Comment, ScheduleEvent, Event } from '@/types';
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
+import { updateEvent, deleteEvent, createEvent } from '@/lib/firebase/events';
 
-const mockEvents = [
+const mockEvents: Event[] = [
   {
     id: '1',
     title: '짱남 축구 경기',
@@ -84,16 +85,24 @@ const mockComments: Comment[] = [
 ];
 
 export default function SchedulePage() {
-  const { user } = useAuthStore();
-  const [events, setEvents] = useState(mockEvents);
+  const { user, users, loadUsers } = useAuthStore();
+  const { events, loadAllData } = useAppStore();
   const [comments, setComments] = useState<Comment[]>(mockComments);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showForm, setShowForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
   const [scheduleFilter, setScheduleFilter] = useState<'my' | 'our'>('our');
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showEventDetail, setShowEventDetail] = useState(false);
+
+  useEffect(() => {
+    // 데이터 로드
+    loadAllData();
+    loadUsers();
+  }, []);
   
   // 목록 뷰 필터 상태
   const [listFilters, setListFilters] = useState({
@@ -109,6 +118,7 @@ export default function SchedulePage() {
     end_date: '',
     end_time: '',
     target_audience: 'all',
+    isAllDay: false,
   });
 
   const getDaysInMonth = (date: Date) => {
@@ -239,44 +249,136 @@ export default function SchedulePage() {
   };
 
   const handleSubmitEvent = async () => {
-    if (!user || !newEvent.title.trim() || !newEvent.start_date || !newEvent.start_time) return;
+    if (!user || !newEvent.title.trim() || !newEvent.start_date || (!newEvent.isAllDay && !newEvent.start_time)) return;
     
-    const startDateTime = new Date(`${newEvent.start_date}T${newEvent.start_time}:00`);
-    const endDateTime = newEvent.end_date && newEvent.end_time 
-      ? new Date(`${newEvent.end_date}T${newEvent.end_time}:00`)
-      : new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1시간 후
+    try {
+      let startDateTime, endDateTime;
+      
+      if (newEvent.isAllDay) {
+        // 종일 이벤트인 경우
+        startDateTime = new Date(`${newEvent.start_date}T00:00:00`);
+        endDateTime = new Date(`${newEvent.start_date}T23:59:59`);
+      } else {
+        // 시간 지정 이벤트인 경우
+        startDateTime = new Date(`${newEvent.start_date}T${newEvent.start_time}:00`);
+        endDateTime = newEvent.end_time 
+          ? new Date(`${newEvent.end_date || newEvent.start_date}T${newEvent.end_time}:00`)
+          : new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1시간 후
+      }
 
-    const event = {
-      id: Date.now().toString(),
-      title: newEvent.title,
-      description: newEvent.description,
-      start_date: startDateTime.toISOString(),
-      end_date: endDateTime.toISOString(),
-      target_audience: newEvent.target_audience,
-      created_by: user.id,
-      creator: user,
-      created_at: new Date().toISOString(),
-    };
-    
-    setEvents([...events, event]);
+      const eventData = {
+        title: newEvent.title,
+        description: newEvent.description,
+        start_date: startDateTime.toISOString(),
+        end_date: endDateTime.toISOString(),
+        target_audience: newEvent.target_audience,
+        created_by: user.id,
+        creator: user,
+      };
+
+      await createEvent(eventData);
+      
+      // 데이터 새로고침
+      await loadAllData();
+      
+      setNewEvent({
+        title: '',
+        description: '',
+        start_date: '',
+        start_time: '',
+        end_date: '',
+        end_time: '',
+        target_audience: 'all',
+        isAllDay: false,
+      });
+      setShowForm(false);
+
+      // 푸시 알림 발송
+      const notificationService = NotificationService.getInstance();
+      await notificationService.notifyNewSchedule(
+        user.name,
+        newEvent.title,
+        newEvent.start_date
+      );
+    } catch (error) {
+      alert('일정 생성에 실패했습니다.');
+    }
+  };
+
+  const handleEditEvent = (event: Event) => {
+    setEditingEvent(event);
+    const startDate = new Date(event.start_date);
     setNewEvent({
-      title: '',
-      description: '',
-      start_date: '',
-      start_time: '',
+      title: event.title,
+      description: event.description || '',
+      start_date: startDate.toISOString().split('T')[0],
+      start_time: startDate.toTimeString().split(' ')[0].slice(0, 5),
       end_date: '',
       end_time: '',
-      target_audience: 'all',
+      target_audience: event.target_audience,
     });
-    setShowForm(false);
+    setShowEditForm(true);
+  };
 
-    // 푸시 알림 발송
-    const notificationService = NotificationService.getInstance();
-    await notificationService.notifyNewSchedule(
-      user.name,
-      newEvent.title,
-      startDateTime.toISOString()
-    );
+  const handleUpdateEvent = async () => {
+    if (!editingEvent || !user || !newEvent.title.trim()) return;
+    
+    try {
+      let startDateTime, endDateTime;
+      
+      if (newEvent.isAllDay) {
+        // 종일 이벤트인 경우
+        startDateTime = new Date(`${newEvent.start_date}T00:00:00`);
+        endDateTime = new Date(`${newEvent.start_date}T23:59:59`);
+      } else {
+        // 시간 지정 이벤트인 경우
+        startDateTime = new Date(`${newEvent.start_date}T${newEvent.start_time}:00`);
+        endDateTime = newEvent.end_time 
+          ? new Date(`${newEvent.end_date || newEvent.start_date}T${newEvent.end_time}:00`)
+          : new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1시간 후
+      }
+
+      const updateData = {
+        title: newEvent.title,
+        description: newEvent.description,
+        start_date: startDateTime.toISOString(),
+        end_date: endDateTime.toISOString(),
+        target_audience: newEvent.target_audience,
+      };
+
+      await updateEvent(editingEvent.id, updateData);
+      
+      // 데이터 새로고침
+      await loadAllData();
+      
+      setEditingEvent(null);
+      setShowEditForm(false);
+      setNewEvent({
+        title: '',
+        description: '',
+        start_date: '',
+        start_time: '',
+        end_date: '',
+        end_time: '',
+        target_audience: 'all',
+        isAllDay: false,
+      });
+    } catch (error) {
+      alert('일정 수정에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!confirm('정말 이 일정을 삭제하시겠습니까?')) return;
+    
+    try {
+      await deleteEvent(eventId);
+      
+      // 데이터 새로고침
+      await loadAllData();
+    } catch (error) {
+      alert('일정 삭제에 실패했습니다.');
+    }
   };
 
   const navigateMonth = (direction: number) => {
@@ -334,7 +436,7 @@ export default function SchedulePage() {
     setComments(prev => [...prev, newComment]);
   };
 
-  const handleEventClick = (event: any) => {
+  const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setShowEventDetail(true);
   };
@@ -362,7 +464,7 @@ export default function SchedulePage() {
               ].map((filter) => (
                 <button
                   key={filter.key}
-                  onClick={() => setScheduleFilter(filter.key as any)}
+                  onClick={() => setScheduleFilter(filter.key as 'my' | 'our')}
                   className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                     scheduleFilter === filter.key
                       ? 'bg-white text-gray-900 shadow-sm'
@@ -383,7 +485,7 @@ export default function SchedulePage() {
             ].map((mode) => (
               <button
                 key={mode.key}
-                onClick={() => setViewMode(mode.key as any)}
+                onClick={() => setViewMode(mode.key as 'month' | 'week' | 'list')}
                 className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                   viewMode === mode.key
                     ? 'bg-white text-gray-900 shadow-sm'
@@ -456,13 +558,29 @@ export default function SchedulePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">시작 시간</label>
-                <input
-                  type="time"
-                  value={newEvent.start_time}
-                  onChange={(e) => setNewEvent({ ...newEvent, start_time: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none text-sm sm:text-base"
-                />
+                <div className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    id="isAllDay"
+                    checked={newEvent.isAllDay}
+                    onChange={(e) => setNewEvent({ ...newEvent, isAllDay: e.target.checked, start_time: e.target.checked ? '' : newEvent.start_time, end_time: e.target.checked ? '' : newEvent.end_time })}
+                    className="mr-2 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <label htmlFor="isAllDay" className="text-sm font-medium text-gray-700">
+                    종일
+                  </label>
+                </div>
+                {!newEvent.isAllDay && (
+                  <>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">시작 시간</label>
+                    <input
+                      type="time"
+                      value={newEvent.start_time}
+                      onChange={(e) => setNewEvent({ ...newEvent, start_time: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none text-sm sm:text-base"
+                    />
+                  </>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">종료일 (선택)</label>
@@ -473,15 +591,17 @@ export default function SchedulePage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none text-sm sm:text-base"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">종료 시간 (선택)</label>
-                <input
-                  type="time"
-                  value={newEvent.end_time}
-                  onChange={(e) => setNewEvent({ ...newEvent, end_time: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none text-sm sm:text-base"
-                />
-              </div>
+              {!newEvent.isAllDay && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">종료 시간 (선택)</label>
+                  <input
+                    type="time"
+                    value={newEvent.end_time}
+                    onChange={(e) => setNewEvent({ ...newEvent, end_time: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none text-sm sm:text-base"
+                  />
+                </div>
+              )}
             </div>
             
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
@@ -494,6 +614,113 @@ export default function SchedulePage() {
               <button
                 onClick={() => {
                   setShowForm(false);
+                  setNewEvent({
+                    title: '',
+                    description: '',
+                    start_date: '',
+                    start_time: '',
+                    end_date: '',
+                    end_time: '',
+                    target_audience: 'all',
+                  });
+                }}
+                className="flex-1 sm:flex-none px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 일정 수정 폼 */}
+      {showEditForm && editingEvent && (
+        <div className="family-card p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">일정 수정</h3>
+          <div className="space-y-4">
+            {/* 대상 선택 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">누구에게 일정을 알려드릴까요?</label>
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                {getTargetAudienceOptions().map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setNewEvent({ ...newEvent, target_audience: option.value })}
+                    className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      newEvent.target_audience === option.value
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <input
+              type="text"
+              placeholder="일정 제목"
+              value={newEvent.title}
+              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none"
+            />
+            <textarea
+              placeholder="일정 설명"
+              value={newEvent.description}
+              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none resize-none"
+            />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
+                <input
+                  type="date"
+                  value={newEvent.start_date}
+                  onChange={(e) => setNewEvent({ ...newEvent, start_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none text-sm sm:text-base"
+                />
+              </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    id="editIsAllDay"
+                    checked={newEvent.isAllDay}
+                    onChange={(e) => setNewEvent({ ...newEvent, isAllDay: e.target.checked, start_time: e.target.checked ? '' : newEvent.start_time })}
+                    className="mr-2 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <label htmlFor="editIsAllDay" className="text-sm font-medium text-gray-700">
+                    종일
+                  </label>
+                </div>
+                {!newEvent.isAllDay && (
+                  <>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
+                    <input
+                      type="time"
+                      value={newEvent.start_time}
+                      onChange={(e) => setNewEvent({ ...newEvent, start_time: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 outline-none text-sm sm:text-base"
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+              <button
+                onClick={handleUpdateEvent}
+                className="flex-1 sm:flex-none px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                수정하기
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditForm(false);
+                  setEditingEvent(null);
                   setNewEvent({
                     title: '',
                     description: '',
@@ -884,6 +1111,31 @@ export default function SchedulePage() {
                     </div>
                   </div>
                   
+                  {/* 수정/삭제 버튼 - 작성자만 볼 수 있음 */}
+                  {user && event.created_by === user.id && (
+                    <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditEvent(event);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        title="수정"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteEvent(event.id);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                        title="삭제"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center space-x-2 text-gray-500">
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="text-xs sm:text-sm">

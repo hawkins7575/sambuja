@@ -1,11 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Target, CheckCircle, Clock, User, Trophy, Star } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
+import { Plus, Target, CheckCircle, Clock, User as UserIcon, Trophy, Star } from 'lucide-react';
+import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
-import { Comment } from '@/types';
+import { Comment, Goal } from '@/types';
+
+type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: 'dad' | 'eldest' | 'youngest';
+  avatar_url?: string;
+  created_at: string;
+};
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 
@@ -27,7 +36,7 @@ const mockComments: Comment[] = [
   },
 ];
 
-const mockGoals = [
+const mockGoals: Goal[] = [
   {
     id: '1',
     title: '매일 30분 운동하기',
@@ -99,8 +108,8 @@ const mockGoals = [
 ];
 
 export default function GoalsPage() {
-  const { user } = useAuthStore();
-  const [goals, setGoals] = useState(mockGoals);
+  const { user, users, loadUsers } = useAuthStore();
+  const { goals, loadAllData } = useAppStore();
   const [comments, setComments] = useState<Comment[]>(mockComments);
   const [showForm, setShowForm] = useState(false);
   const [filterBy, setFilterBy] = useState<'all' | 'my' | 'completed' | 'pending'>('all');
@@ -111,29 +120,14 @@ export default function GoalsPage() {
     owner_id: '',
   });
 
-  const familyMembers = [
-    {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-  ];
+  useEffect(() => {
+    // 데이터 로드
+    loadAllData();
+    loadUsers();
+  }, []);
+
+  // Firebase에서 로드된 실제 사용자 데이터 사용
+  const familyMembers = users;
 
   const filteredGoals = goals.filter(goal => {
     if (filterBy === 'my' && user) {
@@ -147,6 +141,7 @@ export default function GoalsPage() {
     }
     return true;
   });
+
 
   const handleSubmitGoal = () => {
     if (!user || !newGoal.title.trim() || !newGoal.owner_id) return;
@@ -170,17 +165,17 @@ export default function GoalsPage() {
     setShowForm(false);
   };
 
-  const toggleGoalCompletion = (goalId: string) => {
-    setGoals(prev => prev.map(goal => 
-      goal.id === goalId 
-        ? { 
-            ...goal, 
-            completed: !goal.completed,
-            progress: !goal.completed ? 100 : goal.progress
-          }
-        : goal
-    ));
-  };
+  // const toggleGoalCompletion = (goalId: string) => {
+  //   setGoals(prev => prev.map(goal => 
+  //     goal.id === goalId 
+  //       ? { 
+  //           ...goal, 
+  //           completed: !goal.completed,
+  //           progress: !goal.completed ? 100 : goal.progress
+  //         }
+  //       : goal
+  //   ));
+  // };
 
   const updateProgress = async (goalId: string, progress: number) => {
     const updatedGoals = goals.map(goal => 
@@ -271,7 +266,7 @@ export default function GoalsPage() {
           <div className="text-sm text-gray-600">달성 완료</div>
         </div>
         <div className="family-card text-center">
-          <User className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+          <UserIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
           <div className="text-2xl font-bold text-gray-900">{stats.myGoals}</div>
           <div className="text-sm text-gray-600">내 목표</div>
         </div>
@@ -293,7 +288,7 @@ export default function GoalsPage() {
         ].map((filter) => (
           <button
             key={filter.key}
-            onClick={() => setFilterBy(filter.key as any)}
+            onClick={() => setFilterBy(filter.key as 'all' | 'my' | 'pending' | 'completed')}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
               filterBy === filter.key
                 ? 'bg-purple-500 text-white'
@@ -395,7 +390,7 @@ export default function GoalsPage() {
           </div>
         ) : (
           filteredGoals.map((goal) => {
-            const daysLeft = getDaysUntilTarget(goal.target_date);
+            const daysLeft = goal.target_date ? getDaysUntilTarget(goal.target_date) : null;
             const isOverdue = daysLeft !== null && daysLeft < 0;
             const isOwner = user && user.id === goal.owner_id;
             

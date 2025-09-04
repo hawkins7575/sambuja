@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageCircle, Send, Heart, Reply } from 'lucide-react';
+import { MessageCircle, Send, Heart } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { Comment } from '@/types';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';

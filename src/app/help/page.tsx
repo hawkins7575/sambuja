@@ -1,15 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Clock, CheckCircle, Users, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
-import { Comment } from '@/types';
+import { Comment, HelpRequest } from '@/types';
+
+type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: 'dad' | 'eldest' | 'youngest';
+  avatar_url?: string;
+  created_at: string;
+};
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 
-const mockHelpRequests = [
+const mockHelpRequests: HelpRequest[] = [
   {
     id: '1',
     title: '아빠, 수학 숙제 좀 도와주세요',
@@ -295,7 +304,7 @@ export default function HelpPage() {
         ].map((filter) => (
           <button
             key={filter.key}
-            onClick={() => setSelectedStatus(filter.key as any)}
+            onClick={() => setSelectedStatus(filter.key as 'all' | 'open' | 'in_progress' | 'completed')}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
               selectedStatus === filter.key
                 ? 'bg-orange-500 text-white'
