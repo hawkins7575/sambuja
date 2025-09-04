@@ -48,7 +48,7 @@ export default function ProfilePage() {
             <button
               key={member.id}
               onClick={() => setSelectedMember(member.id)}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+              className={`flex-1 py-3 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${
                 selectedMember === member.id
                   ? 'bg-white text-blue-600 shadow-sm transform scale-[1.02]'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -91,8 +91,8 @@ export default function ProfilePage() {
               <span className="text-white text-lg">💡</span>
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 mb-2 text-lg">프로필 작성 가이드</h3>
-              <div className="space-y-2 text-sm text-gray-700">
+              <h3 className="font-semibold text-gray-900 mb-2 text-base">프로필 작성 가이드</h3>
+              <div className="space-y-2 text-xs text-gray-700">
                 <p className="flex items-center">
                   <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
                   각 가족 구성원의 탭을 클릭하여 프로필을 확인할 수 있어요

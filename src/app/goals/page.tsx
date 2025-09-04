@@ -257,23 +257,23 @@ export default function GoalsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="family-card text-center">
           <Target className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-          <div className="text-sm text-gray-600">전체 목표</div>
+          <div className="text-xl font-bold text-gray-900">{stats.total}</div>
+          <div className="text-xs text-gray-600">전체 목표</div>
         </div>
         <div className="family-card text-center">
           <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{stats.completed}</div>
-          <div className="text-sm text-gray-600">달성 완료</div>
+          <div className="text-xl font-bold text-gray-900">{stats.completed}</div>
+          <div className="text-xs text-gray-600">달성 완료</div>
         </div>
         <div className="family-card text-center">
           <UserIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{stats.myGoals}</div>
-          <div className="text-sm text-gray-600">내 목표</div>
+          <div className="text-xl font-bold text-gray-900">{stats.myGoals}</div>
+          <div className="text-xs text-gray-600">내 목표</div>
         </div>
         <div className="family-card text-center">
           <Trophy className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">{stats.myCompleted}</div>
-          <div className="text-sm text-gray-600">내 달성</div>
+          <div className="text-xl font-bold text-gray-900">{stats.myCompleted}</div>
+          <div className="text-xs text-gray-600">내 달성</div>
         </div>
       </div>
 
@@ -303,11 +303,11 @@ export default function GoalsPage() {
       {/* 목표 추가 폼 */}
       {showForm && (
         <div className="family-card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">새 목표 설정</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-4">새 목표 설정</h3>
           <div className="space-y-4">
             {/* 목표 대상자 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">목표를 누구에게 설정할까요?</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">대상</label>
               <div className="flex flex-wrap gap-2">
                 {familyMembers.map((member) => (
                   <button
@@ -343,7 +343,7 @@ export default function GoalsPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-purple-500 outline-none resize-none"
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">목표 달성일 (선택사항)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">달성 목표일</label>
               <input
                 type="date"
                 value={newGoal.target_date}
@@ -427,7 +427,7 @@ export default function GoalsPage() {
                   )}
                 </div>
                 
-                <h2 className={`text-lg font-semibold mb-2 ${goal.completed ? 'text-green-800' : 'text-gray-900'}`}>
+                <h2 className={`text-base font-semibold mb-2 ${goal.completed ? 'text-green-800' : 'text-gray-900'}`}>
                   {goal.title}
                 </h2>
                 

@@ -513,11 +513,11 @@ export default function SchedulePage() {
       {/* 일정 추가 폼 */}
       {showForm && (
         <div className="family-card p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">새 일정 추가</h3>
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">새 일정 추가</h3>
           <div className="space-y-4">
             {/* 대상 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">누구에게 일정을 알려드릴까요?</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">대상</label>
               <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                 {getTargetAudienceOptions().map((option) => (
                   <button
@@ -552,7 +552,7 @@ export default function SchedulePage() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">시작일</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">시작일</label>
                 <input
                   type="date"
                   value={newEvent.start_date}
@@ -569,13 +569,13 @@ export default function SchedulePage() {
                     onChange={(e) => setNewEvent({ ...newEvent, isAllDay: e.target.checked, start_time: e.target.checked ? '' : newEvent.start_time, end_time: e.target.checked ? '' : newEvent.end_time })}
                     className="mr-2 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                   />
-                  <label htmlFor="isAllDay" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="isAllDay" className="text-xs font-medium text-gray-700">
                     종일
                   </label>
                 </div>
                 {!newEvent.isAllDay && (
                   <>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">시작 시간</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">시작 시간</label>
                     <input
                       type="time"
                       value={newEvent.start_time}
@@ -586,7 +586,7 @@ export default function SchedulePage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">종료일 (선택)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">종료일</label>
                 <input
                   type="date"
                   value={newEvent.end_date}
@@ -596,7 +596,7 @@ export default function SchedulePage() {
               </div>
               {!newEvent.isAllDay && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">종료 시간 (선택)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">종료 시간</label>
                   <input
                     type="time"
                     value={newEvent.end_time}
@@ -640,11 +640,11 @@ export default function SchedulePage() {
       {/* 일정 수정 폼 */}
       {showEditForm && editingEvent && (
         <div className="family-card p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">일정 수정</h3>
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">일정 수정</h3>
           <div className="space-y-4">
             {/* 대상 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">누구에게 일정을 알려드릴까요?</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">대상</label>
               <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                 {getTargetAudienceOptions().map((option) => (
                   <button
@@ -679,7 +679,7 @@ export default function SchedulePage() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">날짜</label>
                 <input
                   type="date"
                   value={newEvent.start_date}
@@ -696,13 +696,13 @@ export default function SchedulePage() {
                     onChange={(e) => setNewEvent({ ...newEvent, isAllDay: e.target.checked, start_time: e.target.checked ? '' : newEvent.start_time })}
                     className="mr-2 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                   />
-                  <label htmlFor="editIsAllDay" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="editIsAllDay" className="text-xs font-medium text-gray-700">
                     종일
                   </label>
                 </div>
                 {!newEvent.isAllDay && (
                   <>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">시간</label>
                     <input
                       type="time"
                       value={newEvent.start_time}
@@ -755,7 +755,7 @@ export default function SchedulePage() {
             >
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               {formatDate(currentDate)}
             </h2>
             <button

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Filter, Search, MessageCircle } from 'lucide-react';
+import { Plus, Filter, Search, MessageCircle, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useAuthStore, useAppStore } from '@/lib/store';
 import { Comment } from '@/types';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
@@ -17,11 +17,24 @@ export default function CommunicationPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [newPost, setNewPost] = useState({ title: '', content: '', target_audience: 'all', author_id: '' });
   const [comments, setComments] = useState<Comment[]>([]);
+  const [editingPost, setEditingPost] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState<string | null>(null);
 
 
   useEffect(() => {
     loadAllData();
   }, [loadAllData]);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowDropdown(null);
+    };
+
+    if (showDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDropdown]);
 
   const filteredPosts = posts.filter(post => {
     const matchesAuthor = selectedAuthor === 'all' || 
@@ -118,6 +131,53 @@ export default function CommunicationPage() {
     setComments(prev => [...prev, comment]);
   };
 
+  const handleEditPost = (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    setNewPost({
+      title: post.title,
+      content: post.content,
+      target_audience: post.target_audience,
+      author_id: post.author_id
+    });
+    setEditingPost(postId);
+    setShowWriteForm(true);
+    setShowDropdown(null);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    if (window.confirm('정말 이 글을 삭제하시겠습니까?')) {
+      setPosts(posts.filter(p => p.id !== postId));
+      setShowDropdown(null);
+    }
+  };
+
+  const handleUpdatePost = async () => {
+    if (!user || !newPost.title.trim() || !newPost.content.trim() || !editingPost) return;
+    
+    const updatedPosts = posts.map(post => 
+      post.id === editingPost 
+        ? {
+            ...post,
+            title: newPost.title,
+            content: newPost.content,
+            target_audience: newPost.target_audience,
+            updated_at: new Date().toISOString()
+          }
+        : post
+    );
+    
+    setPosts(updatedPosts);
+    setNewPost({ title: '', content: '', target_audience: 'all', author_id: '' });
+    setShowWriteForm(false);
+    setEditingPost(null);
+  };
+
+  const canEditPost = (post: any) => {
+    return user && (user.role === 'dad' || user.id === post.author_id);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -202,11 +262,13 @@ export default function CommunicationPage() {
       {/* 글쓰기 폼 */}
       {showWriteForm && (
         <div className="family-card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">새 글 작성</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-4">
+            {editingPost ? '글 수정' : '새 글 작성'}
+          </h3>
           <div className="space-y-4">
             {/* 작성자 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">누가 작성하는 글인가요?</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">작성자</label>
               <div className="flex flex-wrap gap-2">
                 {users.map((member) => (
                   <button
@@ -237,7 +299,7 @@ export default function CommunicationPage() {
             {/* 대상 선택 */}
             {newPost.author_id && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">글을 누구에게 보낼까요?</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">대상</label>
                 <div className="flex flex-wrap gap-2">
                   {getTargetAudienceOptions(newPost.author_id).map((option) => (
                     <button
@@ -273,15 +335,16 @@ export default function CommunicationPage() {
             />
             <div className="flex gap-2 pt-2">
               <button
-                onClick={handleSubmitPost}
+                onClick={editingPost ? handleUpdatePost : handleSubmitPost}
                 className="flex-1 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition-all duration-200 font-semibold text-sm min-h-[40px]"
               >
-                게시하기
+                {editingPost ? '수정하기' : '게시하기'}
               </button>
               <button
                 onClick={() => {
                   setShowWriteForm(false);
                   setNewPost({ title: '', content: '', target_audience: 'all', author_id: '' });
+                  setEditingPost(null);
                 }}
                 className="flex-1 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 active:scale-95 transition-all duration-200 font-semibold text-sm min-h-[40px]"
               >
@@ -312,34 +375,70 @@ export default function CommunicationPage() {
                   <Avatar user={post.author} size="md" />
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-medium text-gray-900">{post.author.name}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(post.author.role)}`}>
+                      <h3 className="text-sm font-semibold text-gray-900">{post.author.name}</h3>
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${getRoleColor(post.author.role)}`}>
                         {getRoleName(post.author.role)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500">{getRelativeTime(post.created_at)}</p>
+                    <p className="text-xs text-gray-500">{getRelativeTime(post.created_at)}</p>
                   </div>
                 </div>
                 
-                {/* 대상 표시 */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-gray-500">→</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    post.target_audience === 'all' 
-                      ? 'bg-gray-100 text-gray-700'
-                      : post.target_audience === 'dad' 
-                      ? 'bg-blue-100 text-blue-700'
-                      : post.target_audience === 'eldest'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-purple-100 text-purple-700'
-                  }`}>
-                    {getTargetAudienceLabel(post.target_audience)}
-                  </span>
+                <div className="flex items-center space-x-3">
+                  {/* 대상 표시 */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500">→</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      post.target_audience === 'all' 
+                        ? 'bg-gray-100 text-gray-700'
+                        : post.target_audience === 'dad' 
+                        ? 'bg-blue-100 text-blue-700'
+                        : post.target_audience === 'eldest'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-purple-100 text-purple-700'
+                    }`}>
+                      {getTargetAudienceLabel(post.target_audience)}
+                    </span>
+                  </div>
+
+                  {/* 수정/삭제 메뉴 */}
+                  {canEditPost(post) && (
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDropdown(showDropdown === post.id ? null : post.id);
+                        }}
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4 text-gray-500" />
+                      </button>
+                      
+                      {showDropdown === post.id && (
+                        <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
+                          <button
+                            onClick={() => handleEditPost(post.id)}
+                            className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            <span>수정</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>삭제</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h2>
-              <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-2">{post.title}</h2>
+              <p className="text-sm text-gray-700 mb-4 leading-relaxed">{post.content}</p>
               
               <CommentSection
                 targetType="post"

@@ -156,7 +156,7 @@ export default function Home() {
       {!user ? (
         <div className="family-card">
           <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">삼부자 가족 사이트</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">삼부자 가족 사이트</h2>
             <p className="text-gray-600 mb-6">누구로 로그인 하시겠어요?</p>
             <div className="flex justify-center space-x-4">
               {users.length > 0 ? users.map((member) => (
@@ -195,7 +195,7 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <Avatar user={user} size="lg" />
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   안녕하세요, {user.name}님! 👋
                 </h2>
                 <p className="text-gray-600 mt-1">
@@ -218,7 +218,7 @@ export default function Home() {
       {user && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">최근 소통</h3>
+            <h3 className="text-base font-semibold text-gray-900">최근 소통</h3>
             <Link href="/communication" className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
               <span>더보기</span>
               <ArrowRight className="w-3 h-3" />
@@ -257,7 +257,7 @@ export default function Home() {
       {user && (
         <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">최근 도움 요청</h3>
+          <h3 className="text-base font-semibold text-gray-900">최근 도움 요청</h3>
           <Link href="/help" className="flex items-center space-x-1 text-orange-600 hover:text-orange-700 text-sm font-medium">
             <span>더보기</span>
             <ArrowRight className="w-3 h-3" />
@@ -301,7 +301,7 @@ export default function Home() {
       {user && (
         <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">다가오는 일정</h3>
+          <h3 className="text-base font-semibold text-gray-900">다가오는 일정</h3>
           <Link href="/schedule" className="flex items-center space-x-1 text-green-600 hover:text-green-700 text-sm font-medium">
             <span>더보기</span>
             <ArrowRight className="w-3 h-3" />
@@ -341,7 +341,7 @@ export default function Home() {
       {user && (
         <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">진행 중인 목표</h3>
+          <h3 className="text-base font-semibold text-gray-900">진행 중인 목표</h3>
           <Link href="/goals" className="flex items-center space-x-1 text-purple-600 hover:text-purple-700 text-sm font-medium">
             <span>더보기</span>
             <ArrowRight className="w-3 h-3" />
