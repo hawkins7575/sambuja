@@ -58,18 +58,17 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* Service Worker 임시 비활성화 */}
-        {/*
         <script dangerouslySetInnerHTML={{
           __html: `
-            if ('serviceWorker' in navigator) {
+            if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
               window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js');
+                navigator.serviceWorker.register('/sw.js').catch(function(error) {
+                  console.log('ServiceWorker registration failed: ', error);
+                });
               });
             }
           `
         }} />
-        */}
       </head>
       <body className={`${notoSansKR.variable} font-sans antialiased min-h-screen-mobile`}>
         <FirebaseProvider>
