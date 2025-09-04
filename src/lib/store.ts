@@ -70,16 +70,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       set({ isLoading: true });
       
-      // 데이터베이스 초기화 (한 번만)
-      await initializeDatabase();
+      try {
+        // 데이터베이스 초기화 (한 번만) - 실패해도 계속 진행
+        await initializeDatabase();
+      } catch (dbError) {
+        console.warn('Database initialization failed, continuing with app initialization:', dbError);
+      }
       
-      // 사용자 목록 로드
-      await get().loadUsers();
+      try {
+        // 사용자 목록 로드 - 실패해도 계속 진행
+        await get().loadUsers();
+      } catch (usersError) {
+        console.warn('Users loading failed, continuing with empty user list:', usersError);
+      }
       
       set({ isLoading: false, isInitialized: true });
     } catch (error) {
       console.error('Failed to initialize app:', error);
-      set({ isLoading: false });
+      // 최소한 앱은 작동하도록 함
+      set({ isLoading: false, isInitialized: true });
     }
   }
 }));
