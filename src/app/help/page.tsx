@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Clock, CheckCircle, Users, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Clock, CheckCircle, Users, AlertCircle, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
@@ -130,6 +130,8 @@ export default function HelpPage() {
   const [showForm, setShowForm] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'open' | 'in_progress' | 'completed'>('all');
   const [newRequest, setNewRequest] = useState({ title: '', description: '', target_audience: 'all' });
+  const [editingRequest, setEditingRequest] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState<string | null>(null);
 
   const filteredRequests = helpRequests.filter(request => 
     selectedStatus === 'all' || request.status === selectedStatus
@@ -281,6 +283,63 @@ export default function HelpPage() {
     setComments(prev => [...prev, newComment]);
   };
 
+  const handleEditRequest = (requestId: string) => {
+    const request = helpRequests.find(r => r.id === requestId);
+    if (!request) return;
+    
+    setNewRequest({
+      title: request.title,
+      description: request.description,
+      target_audience: request.target_audience
+    });
+    setEditingRequest(requestId);
+    setShowForm(true);
+    setShowDropdown(null);
+  };
+
+  const handleDeleteRequest = (requestId: string) => {
+    if (window.confirm('정말 이 도움 요청을 삭제하시겠습니까?')) {
+      setHelpRequests(helpRequests.filter(r => r.id !== requestId));
+      setShowDropdown(null);
+    }
+  };
+
+  const handleUpdateRequest = async () => {
+    if (!user || !newRequest.title.trim() || !newRequest.description.trim() || !editingRequest) return;
+    
+    const updatedRequests = helpRequests.map(request => 
+      request.id === editingRequest 
+        ? {
+            ...request,
+            title: newRequest.title,
+            description: newRequest.description,
+            target_audience: newRequest.target_audience,
+            updated_at: new Date().toISOString()
+          }
+        : request
+    );
+    
+    setHelpRequests(updatedRequests);
+    setNewRequest({ title: '', description: '', target_audience: 'all' });
+    setShowForm(false);
+    setEditingRequest(null);
+  };
+
+  const canEditRequest = (request: { requester_id: string }) => {
+    return user && (user.role === 'dad' || user.id === request.requester_id);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowDropdown(null);
+    };
+
+    if (showDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDropdown]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -319,7 +378,9 @@ export default function HelpPage() {
       {/* 요청 폼 */}
       {showForm && (
         <div className="family-card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">도움 요청하기</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {editingRequest ? '도움 요청 수정' : '도움 요청하기'}
+          </h3>
           <div className="space-y-4">
             {/* 대상 선택 */}
             <div>
@@ -357,15 +418,16 @@ export default function HelpPage() {
             />
             <div className="flex space-x-2">
               <button
-                onClick={handleSubmitRequest}
+                onClick={editingRequest ? handleUpdateRequest : handleSubmitRequest}
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
               >
-                요청하기
+                {editingRequest ? '수정하기' : '요청하기'}
               </button>
               <button
                 onClick={() => {
                   setShowForm(false);
                   setNewRequest({ title: '', description: '', target_audience: 'all' });
+                  setEditingRequest(null);
                 }}
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
               >
@@ -405,11 +467,47 @@ export default function HelpPage() {
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon(request.status)}
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                    {getStatusText(request.status)}
-                  </span>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    {getStatusIcon(request.status)}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                      {getStatusText(request.status)}
+                    </span>
+                  </div>
+
+                  {/* 수정/삭제 메뉴 */}
+                  {canEditRequest(request) && (
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDropdown(showDropdown === request.id ? null : request.id);
+                        }}
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4 text-gray-500" />
+                      </button>
+                      
+                      {showDropdown === request.id && (
+                        <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
+                          <button
+                            onClick={() => handleEditRequest(request.id)}
+                            className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            <span>수정</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRequest(request.id)}
+                            className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>삭제</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               

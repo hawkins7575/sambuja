@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Target, CheckCircle, Clock, User as UserIcon, Trophy, Star } from 'lucide-react';
+import { Plus, Target, CheckCircle, Clock, User as UserIcon, Trophy, Star, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
@@ -119,12 +119,25 @@ export default function GoalsPage() {
     target_date: '',
     owner_id: '',
   });
+  const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     // 데이터 로드
     loadAllData();
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowDropdown(null);
+    };
+
+    if (showDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDropdown]);
 
   // Firebase에서 로드된 실제 사용자 데이터 사용
   const familyMembers = users;
@@ -234,6 +247,53 @@ export default function GoalsPage() {
     setComments(prev => [...prev, newComment]);
   };
 
+  const handleEditGoal = (goalId: string) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+    
+    setNewGoal({
+      title: goal.title,
+      description: goal.description,
+      target_date: goal.target_date,
+      owner_id: goal.owner_id
+    });
+    setEditingGoal(goalId);
+    setShowForm(true);
+    setShowDropdown(null);
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    if (window.confirm('정말 이 목표를 삭제하시겠습니까?')) {
+      setGoals(goals.filter(g => g.id !== goalId));
+      setShowDropdown(null);
+    }
+  };
+
+  const handleUpdateGoal = () => {
+    if (!user || !newGoal.title.trim() || !editingGoal) return;
+    
+    const updatedGoals = goals.map(goal => 
+      goal.id === editingGoal 
+        ? {
+            ...goal,
+            title: newGoal.title,
+            description: newGoal.description,
+            target_date: newGoal.target_date,
+            updated_at: new Date().toISOString()
+          }
+        : goal
+    );
+    
+    setGoals(updatedGoals);
+    setNewGoal({ title: '', description: '', target_date: '', owner_id: '' });
+    setShowForm(false);
+    setEditingGoal(null);
+  };
+
+  const canEditGoal = (goal: { owner_id: string }) => {
+    return user && (user.role === 'dad' || user.id === goal.owner_id);
+  };
+
   const stats = {
     total: goals.length,
     completed: goals.filter(g => g.completed).length,
@@ -303,7 +363,9 @@ export default function GoalsPage() {
       {/* 목표 추가 폼 */}
       {showForm && (
         <div className="family-card">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">새 목표 설정</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-4">
+            {editingGoal ? '목표 수정' : '새 목표 설정'}
+          </h3>
           <div className="space-y-4">
             {/* 목표 대상자 선택 */}
             <div>
@@ -354,15 +416,16 @@ export default function GoalsPage() {
             
             <div className="flex space-x-2">
               <button
-                onClick={handleSubmitGoal}
+                onClick={editingGoal ? handleUpdateGoal : handleSubmitGoal}
                 className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
               >
-                설정하기
+                {editingGoal ? '수정하기' : '설정하기'}
               </button>
               <button
                 onClick={() => {
                   setShowForm(false);
                   setNewGoal({ title: '', description: '', target_date: '', owner_id: '' });
+                  setEditingGoal(null);
                 }}
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
               >
@@ -419,12 +482,48 @@ export default function GoalsPage() {
                     </div>
                   </div>
                   
-                  {goal.completed && (
-                    <div className="flex items-center space-x-1 text-green-600">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span className="text-sm font-medium">달성!</span>
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-3">
+                    {goal.completed && (
+                      <div className="flex items-center space-x-1 text-green-600">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span className="text-sm font-medium">달성!</span>
+                      </div>
+                    )}
+
+                    {/* 수정/삭제 메뉴 */}
+                    {canEditGoal(goal) && (
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDropdown(showDropdown === goal.id ? null : goal.id);
+                          }}
+                          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-500" />
+                        </button>
+                        
+                        {showDropdown === goal.id && (
+                          <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-[120px]">
+                            <button
+                              onClick={() => handleEditGoal(goal.id)}
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                              <span>수정</span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteGoal(goal.id)}
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span>삭제</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <h2 className={`text-base font-semibold mb-2 ${goal.completed ? 'text-green-800' : 'text-gray-900'}`}>
