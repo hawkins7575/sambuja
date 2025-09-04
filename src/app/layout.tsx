@@ -58,6 +58,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* Service Worker 임시 비활성화 */}
+        {/*
         <script dangerouslySetInnerHTML={{
           __html: `
             if ('serviceWorker' in navigator) {
@@ -67,6 +69,7 @@ export default function RootLayout({
             }
           `
         }} />
+        */}
       </head>
       <body className={`${notoSansKR.variable} font-sans antialiased min-h-screen-mobile`}>
         <FirebaseProvider>
