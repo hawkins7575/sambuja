@@ -308,14 +308,17 @@ export default function SchedulePage() {
   const handleEditEvent = (event: Event) => {
     setEditingEvent(event);
     const startDate = new Date(event.start_date);
+    const isAllDay = startDate.getHours() === 0 && startDate.getMinutes() === 0;
+    
     setNewEvent({
       title: event.title,
       description: event.description || '',
       start_date: startDate.toISOString().split('T')[0],
-      start_time: startDate.toTimeString().split(' ')[0].slice(0, 5),
+      start_time: isAllDay ? '' : startDate.toTimeString().split(' ')[0].slice(0, 5),
       end_date: '',
       end_time: '',
       target_audience: event.target_audience,
+      isAllDay: isAllDay,
     });
     setShowEditForm(true);
   };
@@ -622,6 +625,7 @@ export default function SchedulePage() {
                     end_date: '',
                     end_time: '',
                     target_audience: 'all',
+                    isAllDay: false,
                   });
                 }}
                 className="flex-1 sm:flex-none px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
@@ -729,6 +733,7 @@ export default function SchedulePage() {
                     end_date: '',
                     end_time: '',
                     target_audience: 'all',
+                    isAllDay: false,
                   });
                 }}
                 className="flex-1 sm:flex-none px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"

@@ -109,7 +109,7 @@ const mockGoals: Goal[] = [
 
 export default function GoalsPage() {
   const { user, users, loadUsers } = useAuthStore();
-  const { goals, loadAllData } = useAppStore();
+  const { goals, setGoals, loadAllData } = useAppStore();
   const [comments, setComments] = useState<Comment[]>(mockComments);
   const [showForm, setShowForm] = useState(false);
   const [filterBy, setFilterBy] = useState<'all' | 'my' | 'completed' | 'pending'>('all');
