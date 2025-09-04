@@ -175,7 +175,6 @@ export default function Home() {
                     />
                   </div>
                   <div className="text-center">
-                    <h3 className="font-semibold text-gray-900">{member.name}</h3>
                     <span className={`text-xs px-2 py-1 rounded-full ${getRoleColor(member.role)}`}>
                       {getRoleName(member.role)}
                     </span>
