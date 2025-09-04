@@ -123,7 +123,7 @@ export default function CommunicationPage() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => setShowWriteForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          className="flex items-center space-x-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition-all duration-200 font-semibold text-sm min-h-[40px] shadow-md"
         >
           <Plus className="w-4 h-4" />
           <span>글쓰기</span>
@@ -143,11 +143,14 @@ export default function CommunicationPage() {
           />
         </div>
         
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-600">작성자로 보기:</span>
-            <div className="flex space-x-2">
+        <div className="space-y-4">
+          {/* 작성자 필터 */}
+          <div>
+            <div className="flex items-center space-x-2 mb-3">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">작성자</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {[
                 { key: 'all', label: '전체' },
                 { key: 'dad', label: '아빠' },
@@ -157,10 +160,10 @@ export default function CommunicationPage() {
                 <button
                   key={filter.key}
                   onClick={() => setSelectedAuthor(filter.key as 'dad' | 'eldest' | 'youngest' | 'all')}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 min-h-[32px] ${
                     selectedAuthor === filter.key
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-blue-500 text-white shadow-md transform scale-105'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95'
                   }`}
                 >
                   {filter.label}
@@ -169,13 +172,16 @@ export default function CommunicationPage() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-600">대상별로 보기:</span>
-            <div className="flex space-x-2">
+          {/* 대상별 필터 */}
+          <div>
+            <div className="flex items-center space-x-2 mb-3">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">대상별</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {[
                 { key: 'all', label: '전체' },
-                { key: 'to_me', label: '나에게 온 글' },
+                { key: 'to_me', label: '나에게' },
                 { key: 'my_posts', label: '내가 쓴 글' },
               ].map((filter) => (
                 <button
@@ -183,7 +189,7 @@ export default function CommunicationPage() {
                   onClick={() => {
                     // 추후 구현 예정
                   }}
-                  className="px-3 py-1 rounded-full text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 min-h-[32px] bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95"
                 >
                   {filter.label}
                 </button>
@@ -200,7 +206,7 @@ export default function CommunicationPage() {
           <div className="space-y-4">
             {/* 작성자 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">누가 작성하는 글인가요?</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">누가 작성하는 글인가요?</label>
               <div className="flex flex-wrap gap-2">
                 {users.map((member) => (
                   <button
@@ -209,20 +215,20 @@ export default function CommunicationPage() {
                     onClick={() => {
                       setNewPost({ ...newPost, author_id: member.id, target_audience: 'all' });
                     }}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 min-h-[36px] ${
                       newPost.author_id === member.id
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-blue-500 text-white shadow-md transform scale-105'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95'
                     }`}
                   >
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                       newPost.author_id === member.id
                         ? 'bg-white text-blue-500'
                         : 'bg-gray-300 text-gray-600'
                     }`}>
                       {member.name.charAt(0)}
                     </div>
-                    <span>{member.name}</span>
+                    <span className="whitespace-nowrap">{member.name}</span>
                   </button>
                 ))}
               </div>
@@ -231,17 +237,17 @@ export default function CommunicationPage() {
             {/* 대상 선택 */}
             {newPost.author_id && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">글을 누구에게 보낼까요?</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">글을 누구에게 보낼까요?</label>
                 <div className="flex flex-wrap gap-2">
                   {getTargetAudienceOptions(newPost.author_id).map((option) => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => setNewPost({ ...newPost, target_audience: option.value })}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 min-h-[36px] whitespace-nowrap ${
                         newPost.target_audience === option.value
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-green-500 text-white shadow-md transform scale-105'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95'
                       }`}
                     >
                       {option.label}
@@ -265,10 +271,10 @@ export default function CommunicationPage() {
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 outline-none resize-none"
             />
-            <div className="flex space-x-2">
+            <div className="flex gap-2 pt-2">
               <button
                 onClick={handleSubmitPost}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="flex-1 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition-all duration-200 font-semibold text-sm min-h-[40px]"
               >
                 게시하기
               </button>
@@ -277,7 +283,7 @@ export default function CommunicationPage() {
                   setShowWriteForm(false);
                   setNewPost({ title: '', content: '', target_audience: 'all', author_id: '' });
                 }}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                className="flex-1 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 active:scale-95 transition-all duration-200 font-semibold text-sm min-h-[40px]"
               >
                 취소
               </button>
