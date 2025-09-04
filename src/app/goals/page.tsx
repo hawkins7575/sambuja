@@ -253,8 +253,8 @@ export default function GoalsPage() {
     
     setNewGoal({
       title: goal.title,
-      description: goal.description,
-      target_date: goal.target_date,
+      description: goal.description || '',
+      target_date: goal.target_date || '',
       owner_id: goal.owner_id
     });
     setEditingGoal(goalId);
