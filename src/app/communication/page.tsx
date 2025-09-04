@@ -174,7 +174,7 @@ export default function CommunicationPage() {
     setEditingPost(null);
   };
 
-  const canEditPost = (post: any) => {
+  const canEditPost = (post: { author_id: string }) => {
     return user && (user.role === 'dad' || user.id === post.author_id);
   };
 
