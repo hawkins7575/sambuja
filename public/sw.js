@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'sambuja-family-v1';
+const CACHE_NAME = 'sambuja-family-v2';
 const urlsToCache = [
   '/',
   '/schedule',
@@ -48,6 +48,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
+  // Skip caching for chrome-extension and other unsupported schemes
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -62,12 +67,20 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
 
+          // Skip caching for non-same-origin requests
+          if (!event.request.url.startsWith(self.location.origin)) {
+            return response;
+          }
+
           // Clone the response
           const responseToCache = response.clone();
 
           caches.open(CACHE_NAME)
             .then((cache) => {
               cache.put(event.request, responseToCache);
+            })
+            .catch((error) => {
+              console.log('Cache put failed:', error);
             });
 
           return response;
