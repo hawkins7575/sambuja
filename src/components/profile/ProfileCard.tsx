@@ -661,8 +661,8 @@ export default function ProfileCard({
                     <span className="text-sm md:text-2xl text-white md:text-white">{category.icon}</span>
                   </div>
                   <div>
-                    <h3 className="text-sm md:text-xl font-bold text-gray-800 md:text-white mb-0">{category.title}</h3>
-                    <p className="text-xs md:text-sm text-gray-600 md:text-white/80 hidden md:block">{category.description}</p>
+                    <h3 className="text-sm md:text-xl font-bold text-gray-700 md:text-white mb-0">{category.title}</h3>
+                    <p className="text-xs md:text-sm text-gray-500 md:text-white/80 hidden md:block">{category.description}</p>
                   </div>
                 </div>
               </div>
