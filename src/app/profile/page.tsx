@@ -13,7 +13,13 @@ export default function ProfilePage() {
   const [profileAnswers, setProfileAnswers] = useState<{ [userId: string]: ProfileAnswer[] }>({});
 
   useEffect(() => {
-    if (user) {
+    // 기본적으로 첫 번째 사용자 선택 (로그인 상태와 무관)
+    if (users.length > 0 && !selectedMember) {
+      setSelectedMember(users[0].id);
+    }
+    
+    // 로그인한 사용자가 있으면 해당 사용자 선택
+    if (user && users.length > 0) {
       setSelectedMember(user.id);
     }
 
@@ -23,7 +29,7 @@ export default function ProfilePage() {
       allAnswers[member.id] = getDefaultAnswers();
     });
     setProfileAnswers(allAnswers);
-  }, [user, users]);
+  }, [user, users, selectedMember]);
 
   const handleUpdateAnswers = (userId: string, answers: ProfileAnswer[]) => {
     // 로컬 상태만 업데이트 (실제 서버 저장은 추후 구현)
@@ -36,7 +42,8 @@ export default function ProfilePage() {
   const selectedMemberData = users.find(member => member.id === selectedMember);
   const selectedMemberAnswers = profileAnswers[selectedMember] || getDefaultAnswers();
 
-  if (!user) return <div>로딩 중...</div>;
+  // 사용자 목록이 없으면 로딩 표시
+  if (users.length === 0) return <div className="flex justify-center items-center min-h-64"><div className="text-gray-500">로딩 중...</div></div>;
 
   return (
     <div className="space-y-6">
@@ -76,7 +83,7 @@ export default function ProfilePage() {
           questions={profileQuestions}
           answers={selectedMemberAnswers}
           onUpdateAnswers={(answers) => handleUpdateAnswers(selectedMember, answers)}
-          isOwner={true}
+          isOwner={user ? (user.role === 'dad' || user.id === selectedMember) : false}
         />
       )}
 
