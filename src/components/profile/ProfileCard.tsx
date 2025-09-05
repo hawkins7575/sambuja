@@ -141,7 +141,7 @@ export default function ProfileCard({
       const answerValue = currentAnswer?.answer;
       
       if (!answerValue || (Array.isArray(answerValue) && answerValue.length === 0)) {
-        return <span className="text-gray-400 italic">미입력</span>;
+        return <span className="text-gray-400 italic text-base md:text-sm">미입력</span>;
       }
 
       if (question.type === 'tags' && Array.isArray(answerValue)) {
@@ -430,9 +430,9 @@ export default function ProfileCard({
                   e.currentTarget.value = '';
                 }
               }}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-rose-400 focus:ring-4 focus:ring-rose-400/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+              className="w-full px-4 py-4 md:py-3 text-base md:text-sm border border-gray-200 rounded-xl focus:border-rose-400 focus:ring-4 focus:ring-rose-400/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
             />
-            <p className="text-xs text-gray-500">Enter를 눌러서 태그를 추가하세요</p>
+            <p className="text-sm md:text-xs text-gray-500">Enter를 눌러서 태그를 추가하세요</p>
           </div>
         );
 
@@ -444,17 +444,17 @@ export default function ProfileCard({
   return (
     <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
       {/* 헤더 영역 - 파스텔 그라데이션 배경 */}
-      <div className="relative bg-gradient-to-br from-rose-300 via-pink-200 to-purple-300 px-8 py-6">
+      <div className="relative bg-gradient-to-br from-rose-300 via-pink-200 to-purple-300 px-5 py-6 md:px-8 md:py-6">
         <div className="absolute inset-0 bg-white/10"></div>
         <div className="relative flex items-center justify-between">
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 md:space-x-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-xl border-4 border-white/30 backdrop-blur-sm">
+              <div className="w-24 h-24 md:w-20 md:h-20 rounded-2xl overflow-hidden shadow-xl border-4 border-white/30 backdrop-blur-sm">
                 <Image 
                   src={`/${user.role === 'dad' ? 'dad' : user.role === 'eldest' ? 'eldest' : 'youngest'}-avatar.png`} 
                   alt={user.name} 
-                  width={80} 
-                  height={80} 
+                  width={96} 
+                  height={96} 
                   className="w-full h-full object-cover" 
                 />
               </div>
@@ -464,13 +464,13 @@ export default function ProfileCard({
             </div>
             
             <div className="text-gray-800">
-              <h2 className="text-2xl font-bold mb-1 text-gray-800">{user.name}</h2>
+              <h2 className="text-3xl md:text-2xl font-bold mb-2 md:mb-1 text-gray-800">{user.name}</h2>
               <div className="flex items-center space-x-3">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/40 backdrop-blur-sm text-gray-700 shadow-sm">
+                <span className="inline-flex items-center px-4 py-2 md:px-3 md:py-1 rounded-full text-sm md:text-xs font-medium bg-white/40 backdrop-blur-sm text-gray-700 shadow-sm">
                   {getRoleName(user.role)}
                 </span>
                 {findAnswerByQuestionId(answers, 'birthdate')?.answer && (
-                  <span className="text-sm text-gray-700 opacity-90">
+                  <span className="text-base md:text-sm text-gray-700 opacity-90">
                     {new Date().getFullYear() - new Date(findAnswerByQuestionId(answers, 'birthdate')?.answer as string).getFullYear()}세
                   </span>
                 )}
@@ -483,26 +483,26 @@ export default function ProfileCard({
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-white/50 backdrop-blur-sm text-gray-700 rounded-xl hover:bg-white/70 transition-all duration-200 border border-white/40 shadow-sm"
+                  className="flex items-center space-x-2 px-5 py-3 md:px-4 md:py-2 bg-white/50 backdrop-blur-sm text-gray-700 rounded-xl hover:bg-white/70 transition-all duration-200 border border-white/40 shadow-sm"
                 >
-                  <Edit className="w-4 h-4" />
-                  <span className="font-medium">편집</span>
+                  <Edit className="w-5 h-5 md:w-4 md:h-4" />
+                  <span className="font-medium text-base md:text-sm">편집</span>
                 </button>
               ) : (
                 <div className="flex space-x-2">
                   <button
                     onClick={handleSave}
-                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-400/90 backdrop-blur-sm text-white rounded-xl hover:bg-emerald-500 transition-all duration-200 shadow-sm"
+                    className="flex items-center space-x-2 px-5 py-3 md:px-4 md:py-2 bg-emerald-400/90 backdrop-blur-sm text-white rounded-xl hover:bg-emerald-500 transition-all duration-200 shadow-sm"
                   >
-                    <Save className="w-4 h-4" />
-                    <span className="font-medium">저장</span>
+                    <Save className="w-5 h-5 md:w-4 md:h-4" />
+                    <span className="font-medium text-base md:text-sm">저장</span>
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-400/90 backdrop-blur-sm text-white rounded-xl hover:bg-gray-500 transition-all duration-200 shadow-sm"
+                    className="flex items-center space-x-2 px-5 py-3 md:px-4 md:py-2 bg-gray-400/90 backdrop-blur-sm text-white rounded-xl hover:bg-gray-500 transition-all duration-200 shadow-sm"
                   >
-                    <X className="w-4 h-4" />
-                    <span className="font-medium">취소</span>
+                    <X className="w-5 h-5 md:w-4 md:h-4" />
+                    <span className="font-medium text-base md:text-sm">취소</span>
                   </button>
                 </div>
               )}
@@ -512,29 +512,29 @@ export default function ProfileCard({
       </div>
 
       {/* 컨텐츠 영역 */}
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div className="p-5 md:p-6 lg:p-8">
         {/* 질문/답변 목록 - 카드 격자 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
           {questions.map((question, index) => (
             <div 
               key={question.id} 
               className="bg-gradient-to-br from-white via-rose-50/30 to-purple-50/30 rounded-2xl border border-rose-100 hover:border-rose-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
             >
               {/* 질문 헤더 */}
-              <div className="bg-gradient-to-r from-rose-50 to-purple-50 px-5 py-4 border-b border-rose-100">
+              <div className="bg-gradient-to-r from-rose-50 to-purple-50 px-4 py-4 md:px-5 md:py-4 border-b border-rose-100">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-purple-400 rounded-xl flex items-center justify-center shadow-sm">
-                    <span className="text-white text-sm font-bold">{index + 1}</span>
+                  <div className="w-10 h-10 md:w-8 md:h-8 bg-gradient-to-r from-rose-400 to-purple-400 rounded-xl flex items-center justify-center shadow-sm">
+                    <span className="text-white text-base md:text-sm font-bold">{index + 1}</span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 text-sm">{question.question}</h3>
-                    {question.required && <span className="text-rose-500 text-xs">*</span>}
+                    <h3 className="font-bold text-gray-800 text-base md:text-sm leading-relaxed">{question.question}</h3>
+                    {question.required && <span className="text-rose-500 text-sm md:text-xs">*</span>}
                   </div>
                 </div>
               </div>
               
               {/* 답변 내용 */}
-              <div className="p-5">
+              <div className="p-4 md:p-5">
                 {renderQuestionInput(question)}
               </div>
             </div>
@@ -542,13 +542,13 @@ export default function ProfileCard({
         </div>
         
         {/* 추가 정보 카드 */}
-        <div className="mt-12 bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50 rounded-2xl p-8 border border-emerald-100 shadow-sm">
+        <div className="mt-8 md:mt-12 bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50 rounded-2xl p-6 md:p-8 border border-emerald-100 shadow-sm">
           <div className="text-center">
-            <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg">
-              <span className="text-white text-2xl">✨</span>
+            <div className="w-16 h-16 md:w-14 md:h-14 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg">
+              <span className="text-white text-3xl md:text-2xl">✨</span>
             </div>
-            <h3 className="font-bold text-gray-800 mb-3 text-lg">프로필 완성도</h3>
-            <p className="text-gray-600 text-base mb-6 leading-relaxed">
+            <h3 className="font-bold text-gray-800 mb-4 md:mb-3 text-xl md:text-lg">프로필 완성도</h3>
+            <p className="text-gray-600 text-lg md:text-base mb-8 md:mb-6 leading-relaxed px-4 md:px-0">
               더 많은 정보를 입력할수록 가족이 서로를 더 잘 알 수 있어요!
             </p>
             <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">

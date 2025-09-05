@@ -42,19 +42,19 @@ export default function ProfilePage() {
     <div className="space-y-6">
 
       {/* 가족 구성원 선택 탭 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
-        <div className="flex space-x-2 bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 rounded-xl p-2">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-3">
+        <div className="flex space-x-3 md:space-x-2 bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 rounded-xl p-3 md:p-2">
           {users.map((member) => (
             <button
               key={member.id}
               onClick={() => setSelectedMember(member.id)}
-              className={`flex-1 py-4 px-3 rounded-xl font-medium text-sm transition-all duration-300 ${
+              className={`flex-1 py-5 px-4 md:py-4 md:px-3 rounded-xl font-medium text-base md:text-sm transition-all duration-300 ${
                 selectedMember === member.id
                   ? 'bg-white text-rose-600 shadow-lg transform scale-105 ring-2 ring-rose-200'
                   : 'text-gray-600 hover:text-rose-500 hover:bg-white/50'
               }`}
             >
-              <div className="flex flex-col items-center space-y-2">
+              <div className="flex flex-col items-center space-y-3 md:space-y-2">
                 <div className={`transition-all duration-300 ${
                   selectedMember === member.id 
                     ? 'scale-110 ring-3 ring-rose-300 ring-offset-2 rounded-full' 
@@ -62,7 +62,7 @@ export default function ProfilePage() {
                 }`}>
                   <Avatar user={member} size="sm" />
                 </div>
-                <span className="font-semibold">{member.name}</span>
+                <span className="font-bold text-lg md:text-base">{member.name}</span>
               </div>
             </button>
           ))}
