@@ -16,7 +16,7 @@ export const viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#22c55e'
+  themeColor: '#0ea5e9'
 };
 
 export const metadata: Metadata = {
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' }
+      { url: '/dad-avatar.png', sizes: '192x192', type: 'image/png' },
+      { url: '/dad-avatar.png', sizes: '512x512', type: 'image/png' }
     ],
     apple: [
-      { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
-      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' }
+      { url: '/dad-avatar.png', sizes: '152x152', type: 'image/png' },
+      { url: '/dad-avatar.png', sizes: '192x192', type: 'image/png' }
     ],
-    shortcut: '/icons/icon-192x192.png'
+    shortcut: '/dad-avatar.png'
   },
   appleWebApp: {
     capable: true,
@@ -45,8 +45,8 @@ export const metadata: Metadata = {
     "application-name": "삼부자",
     "apple-mobile-web-app-title": "삼부자",
     "apple-mobile-web-app-status-bar-style": "default",
-    "msapplication-TileColor": "#22c55e",
-    "msapplication-TileImage": "/icons/icon-144x144.png"
+    "msapplication-TileColor": "#0ea5e9",
+    "msapplication-TileImage": "/dad-avatar.png"
   }
 };
 

@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'sambuja-family-v2';
+const CACHE_NAME = 'sambuja-family-v3';
 const urlsToCache = [
   '/',
   '/schedule',
@@ -7,8 +7,9 @@ const urlsToCache = [
   '/communication',
   '/help',
   '/profile',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/dad-avatar.png',
+  '/eldest-avatar.png',
+  '/youngest-avatar.png',
   '/manifest.json'
 ];
 
