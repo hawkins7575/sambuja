@@ -233,7 +233,7 @@ export default function ProfileCard({
             value={typeof answerValue === 'string' ? answerValue : ''}
             onChange={(e) => updateAnswer(question.id, e.target.value)}
             placeholder={question.placeholder}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
           />
         );
 
@@ -243,7 +243,7 @@ export default function ProfileCard({
             type="date"
             value={typeof answerValue === 'string' ? answerValue : ''}
             onChange={(e) => updateAnswer(question.id, e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
           />
         );
 
@@ -327,7 +327,7 @@ export default function ProfileCard({
           <select
             value={typeof answerValue === 'string' ? answerValue : ''}
             onChange={(e) => updateAnswer(question.id, e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
           >
             <option value="">선택해주세요</option>
             {question.options?.map((option) => (
@@ -422,13 +422,13 @@ export default function ProfileCard({
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-rose-100 to-pink-50 text-rose-700 rounded-full text-sm font-medium border border-rose-200 shadow-sm"
+                  className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-sky-100 to-blue-50 text-sky-700 rounded-full text-sm font-medium border border-sky-200 shadow-sm"
                 >
-                  <div className="w-1.5 h-1.5 bg-rose-400 rounded-full mr-2"></div>
+                  <div className="w-1.5 h-1.5 bg-sky-400 rounded-full mr-2"></div>
                   {tag}
                   <button
                     onClick={() => removeTag(question.id, tag)}
-                    className="ml-2 w-5 h-5 flex items-center justify-center text-rose-600 hover:text-rose-800 hover:bg-rose-200 rounded-full transition-colors"
+                    className="ml-2 w-5 h-5 flex items-center justify-center text-sky-600 hover:text-sky-800 hover:bg-sky-200 rounded-full transition-colors"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -445,7 +445,7 @@ export default function ProfileCard({
                   e.currentTarget.value = '';
                 }
               }}
-              className="w-full px-4 py-4 md:py-3 text-base md:text-sm border border-gray-200 rounded-xl focus:border-rose-400 focus:ring-4 focus:ring-rose-400/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+              className="w-full px-4 py-4 md:py-3 text-base md:text-sm border border-gray-200 rounded-xl focus:border-sky-400 focus:ring-4 focus:ring-sky-400/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
             />
             <p className="text-sm md:text-xs text-gray-500">Enter를 눌러서 태그를 추가하세요</p>
           </div>
@@ -458,8 +458,8 @@ export default function ProfileCard({
 
   return (
     <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
-      {/* 헤더 영역 - 파스텔 그라데이션 배경 */}
-      <div className="relative bg-gradient-to-br from-rose-300 via-pink-200 to-purple-300 px-5 py-6 md:px-8 md:py-6">
+      {/* 헤더 영역 - 연한 하늘색 그라데이션 배경 */}
+      <div className="relative bg-gradient-to-br from-sky-200 via-sky-100 to-blue-200 px-5 py-6 md:px-8 md:py-6">
         <div className="absolute inset-0 bg-white/10"></div>
         <div className="relative flex items-center justify-between">
           <div className="flex items-center space-x-4 md:space-x-6">
@@ -533,17 +533,17 @@ export default function ProfileCard({
           {questions.map((question, index) => (
             <div 
               key={question.id} 
-              className="bg-gradient-to-br from-white via-rose-50/30 to-purple-50/30 rounded-2xl border border-rose-100 hover:border-rose-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
+              className="bg-gradient-to-br from-white via-sky-50/30 to-blue-50/30 rounded-2xl border border-sky-100 hover:border-sky-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
             >
               {/* 질문 헤더 */}
-              <div className="bg-gradient-to-r from-rose-50 to-purple-50 px-4 py-4 md:px-5 md:py-4 border-b border-rose-100">
+              <div className="bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-4 md:px-5 md:py-4 border-b border-sky-100">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 md:w-8 md:h-8 bg-gradient-to-r from-rose-400 to-purple-400 rounded-xl flex items-center justify-center shadow-sm">
+                  <div className="w-10 h-10 md:w-8 md:h-8 bg-gradient-to-r from-sky-400 to-blue-400 rounded-xl flex items-center justify-center shadow-sm">
                     <span className="text-white text-base md:text-sm font-bold">{index + 1}</span>
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-800 text-base md:text-sm leading-relaxed">{question.question}</h3>
-                    {question.required && <span className="text-rose-500 text-sm md:text-xs">*</span>}
+                    {question.required && <span className="text-sky-500 text-sm md:text-xs">*</span>}
                   </div>
                 </div>
               </div>
