@@ -9,6 +9,67 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Image from 'next/image';
 
+// 프로필 카테고리 정의
+interface ProfileCategory {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  color: string;
+  questions: string[];
+}
+
+const profileCategories: ProfileCategory[] = [
+  {
+    id: 'basic',
+    title: '기본 정보',
+    icon: '👤',
+    description: '기본적인 개인 정보',
+    color: 'from-sky-400 to-blue-500',
+    questions: ['birthdate', 'nickname', 'blood_type', 'education']
+  },
+  {
+    id: 'preferences',
+    title: '취향',
+    icon: '❤️',
+    description: '좋아하는 것들과 선호사항',
+    color: 'from-pink-400 to-rose-500',
+    questions: ['favorite_food', 'favorite_music', 'favorite_movie', 'favorite_color', 'favorite_season', 'favorite_place', 'hate_food']
+  },
+  {
+    id: 'personality',
+    title: '성격 & 특성',
+    icon: '⭐',
+    description: '성격과 개인적 특성',
+    color: 'from-amber-400 to-orange-500',
+    questions: ['personality', 'special_skill', 'hobby']
+  },
+  {
+    id: 'goals',
+    title: '목표 & 꿈',
+    icon: '🎯',
+    description: '미래의 계획과 목표',
+    color: 'from-emerald-400 to-green-500',
+    questions: ['dream', 'favorite_subject', 'bucket_list']
+  },
+  {
+    id: 'contact',
+    title: '연락처 & SNS',
+    icon: '📱',
+    description: '연락 수단과 소셜 미디어',
+    color: 'from-purple-400 to-indigo-500',
+    questions: ['email', 'sns']
+  },
+  {
+    id: 'relationships',
+    title: '인간관계',
+    icon: '👥',
+    description: '친구와 인간관계',
+    color: 'from-cyan-400 to-teal-500',
+    questions: ['best_friend']
+  }
+];
+
 interface ProfileCardProps {
   user: User;
   questions: ProfileQuestion[];
@@ -526,49 +587,103 @@ export default function ProfileCard({
         </div>
       </div>
 
-      {/* 컨텐츠 영역 */}
-      <div className="p-5 md:p-6 lg:p-8">
-        {/* 질문/답변 목록 - 카드 격자 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-          {questions.map((question, index) => (
-            <div 
-              key={question.id} 
-              className="bg-gradient-to-br from-white via-sky-50/30 to-blue-50/30 rounded-2xl border border-sky-100 hover:border-sky-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
-            >
-              {/* 질문 헤더 */}
-              <div className="bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-4 md:px-5 md:py-4 border-b border-sky-100">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 md:w-8 md:h-8 bg-gradient-to-r from-sky-400 to-blue-400 rounded-xl flex items-center justify-center shadow-sm">
-                    <span className="text-white text-base md:text-sm font-bold">{index + 1}</span>
+      {/* 컨텐츠 영역 - 카테고리별 구성 */}
+      <div className="p-5 md:p-6 lg:p-8 space-y-8">
+        {profileCategories.map((category) => {
+          const categoryQuestions = questions.filter(q => category.questions.includes(q.id));
+          
+          return (
+            <div key={category.id} className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+              {/* 카테고리 헤더 */}
+              <div className={`relative bg-gradient-to-r ${category.color} px-4 py-5 md:px-6 md:py-4`}>
+                <div className="absolute inset-0 bg-white/10"></div>
+                <div className="relative flex items-center space-x-3 md:space-x-4">
+                  <div className="w-14 h-14 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-3xl md:text-2xl">{category.icon}</span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 text-base md:text-sm leading-relaxed">{question.question}</h3>
-                    {question.required && <span className="text-sky-500 text-sm md:text-xs">*</span>}
+                    <h3 className="text-2xl md:text-xl font-bold text-white mb-1 md:mb-1">{category.title}</h3>
+                    <p className="text-white/80 text-base md:text-sm">{category.description}</p>
                   </div>
                 </div>
               </div>
-              
-              {/* 답변 내용 */}
-              <div className="p-4 md:p-5">
-                {renderQuestionInput(question)}
+
+              {/* 카테고리 내 질문들 */}
+              <div className="p-4 md:p-6">
+                <div className="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2">
+                  {categoryQuestions.map((question) => (
+                    <div 
+                      key={question.id} 
+                      className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+                    >
+                      {/* 질문 제목 */}
+                      <div className="bg-gray-100/50 px-4 py-4 md:py-3 border-b border-gray-200">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-semibold text-gray-800 text-base md:text-sm">{question.question}</h4>
+                          {question.required && <span className="text-red-500 text-sm md:text-xs">*</span>}
+                        </div>
+                      </div>
+                      
+                      {/* 답변 내용 */}
+                      <div className="p-5 md:p-4">
+                        {renderQuestionInput(question)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-        
-        {/* 추가 정보 카드 */}
-        <div className="mt-8 md:mt-12 bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50 rounded-2xl p-6 md:p-8 border border-emerald-100 shadow-sm">
+          );
+        })}
+      </div>
+      {/* 프로필 완성도 카드 */}
+      <div className="p-5 md:p-6 lg:p-8">
+        <div className="bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 rounded-3xl p-6 md:p-8 border border-sky-100 shadow-sm">
           <div className="text-center">
-            <div className="w-16 h-16 md:w-14 md:h-14 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 md:w-14 md:h-14 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg">
               <span className="text-white text-3xl md:text-2xl">✨</span>
             </div>
             <h3 className="font-bold text-gray-800 mb-4 md:mb-3 text-xl md:text-lg">프로필 완성도</h3>
             <p className="text-gray-600 text-lg md:text-base mb-8 md:mb-6 leading-relaxed px-4 md:px-0">
-              더 많은 정보를 입력할수록 가족이 서로를 더 잘 알 수 있어요!
+              카테고리별로 정보를 입력해서 완성도를 높여보세요!
             </p>
+            
+            {/* 카테고리별 완성도 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {profileCategories.map((category) => {
+                const categoryQuestions = questions.filter(q => category.questions.includes(q.id));
+                const completedCount = categoryQuestions.filter(q => {
+                  const answer = findAnswerByQuestionId(answers, q.id);
+                  return answer && answer.answer && (
+                    typeof answer.answer === 'string' ? answer.answer.trim() : answer.answer.length > 0
+                  );
+                }).length;
+                const completionRate = categoryQuestions.length > 0 ? (completedCount / categoryQuestions.length) * 100 : 0;
+                
+                return (
+                  <div key={category.id} className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <span className="text-xl">{category.icon}</span>
+                      <div className="flex-1 text-left">
+                        <h4 className="font-semibold text-gray-800 text-sm">{category.title}</h4>
+                        <p className="text-xs text-gray-500">{completedCount}/{categoryQuestions.length} 완료</p>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`bg-gradient-to-r ${category.color} h-2 rounded-full transition-all duration-500`}
+                        style={{ width: `${completionRate}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 전체 완성도 */}
             <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
               <div 
-                className="bg-gradient-to-r from-emerald-400 to-cyan-500 h-3 rounded-full transition-all duration-500 shadow-sm"
+                className="bg-gradient-to-r from-sky-400 to-blue-500 h-3 rounded-full transition-all duration-500 shadow-sm"
                 style={{ 
                   width: `${Math.round((questions.filter(q => {
                     const answer = findAnswerByQuestionId(answers, q.id);
@@ -579,16 +694,22 @@ export default function ProfileCard({
                 }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {questions.filter(q => {
+            <p className="text-sm text-gray-600 mt-3">
+              전체 완성도: {questions.filter(q => {
                 const answer = findAnswerByQuestionId(answers, q.id);
                 return answer && answer.answer && (
                   typeof answer.answer === 'string' ? answer.answer.trim() : answer.answer.length > 0
                 );
-              }).length} / {questions.length} 완료
+              }).length} / {questions.length} ({Math.round((questions.filter(q => {
+                const answer = findAnswerByQuestionId(answers, q.id);
+                return answer && answer.answer && (
+                  typeof answer.answer === 'string' ? answer.answer.trim() : answer.answer.length > 0
+                );
+              }).length / questions.length) * 100)}%)
             </p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

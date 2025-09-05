@@ -21,6 +21,12 @@ export const profileQuestions: ProfileQuestion[] = [
     placeholder: '가족들이 부르는 별명을 입력하세요',
   },
   {
+    id: 'blood_type',
+    question: '혈액형',
+    type: 'select',
+    options: ['A형', 'B형', 'AB형', 'O형', '모름'],
+  },
+  {
     id: 'favorite_food',
     question: '좋아하는 음식',
     type: 'text',
@@ -35,8 +41,8 @@ export const profileQuestions: ProfileQuestion[] = [
   {
     id: 'best_friend',
     question: '가장 친한 친구',
-    type: 'text',
-    placeholder: '친한 친구의 이름을 입력하세요',
+    type: 'textarea',
+    placeholder: '친구 이름과 전화번호를 입력하세요\n예: 김철수 (010-1234-5678)\n    이영희 (010-9876-5432)',
   },
   {
     id: 'hobby',
