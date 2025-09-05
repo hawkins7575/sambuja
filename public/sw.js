@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'sambuja-family-v4';
+const CACHE_NAME = 'sambuja-family-v5';
 const urlsToCache = [
   '/',
   '/schedule',
