@@ -25,7 +25,7 @@ const profileCategories: ProfileCategory[] = [
     title: '기본 정보',
     icon: '👤',
     description: '기본적인 개인 정보',
-    color: 'from-sky-400 to-blue-500',
+    color: 'from-slate-300 to-slate-400',
     questions: ['birthdate', 'nickname', 'blood_type', 'education']
   },
   {
@@ -33,7 +33,7 @@ const profileCategories: ProfileCategory[] = [
     title: '취향',
     icon: '❤️',
     description: '좋아하는 것들과 선호사항',
-    color: 'from-pink-400 to-rose-500',
+    color: 'from-rose-200 to-pink-300',
     questions: ['favorite_food', 'favorite_music', 'favorite_movie', 'favorite_color', 'favorite_season', 'favorite_place', 'hate_food']
   },
   {
@@ -41,7 +41,7 @@ const profileCategories: ProfileCategory[] = [
     title: '성격 & 특성',
     icon: '⭐',
     description: '성격과 개인적 특성',
-    color: 'from-amber-400 to-orange-500',
+    color: 'from-amber-200 to-yellow-300',
     questions: ['personality', 'special_skill', 'hobby']
   },
   {
@@ -49,7 +49,7 @@ const profileCategories: ProfileCategory[] = [
     title: '목표 & 꿈',
     icon: '🎯',
     description: '미래의 계획과 목표',
-    color: 'from-emerald-400 to-green-500',
+    color: 'from-emerald-200 to-green-300',
     questions: ['dream', 'favorite_subject', 'bucket_list']
   },
   {
@@ -57,7 +57,7 @@ const profileCategories: ProfileCategory[] = [
     title: '연락처 & SNS',
     icon: '📱',
     description: '연락 수단과 소셜 미디어',
-    color: 'from-purple-400 to-indigo-500',
+    color: 'from-purple-200 to-violet-300',
     questions: ['email', 'sns']
   },
   {
@@ -65,7 +65,7 @@ const profileCategories: ProfileCategory[] = [
     title: '인간관계',
     icon: '👥',
     description: '친구와 인간관계',
-    color: 'from-cyan-400 to-teal-500',
+    color: 'from-cyan-200 to-sky-300',
     questions: ['best_friend']
   }
 ];
@@ -93,6 +93,10 @@ export default function ProfileCard({
   const [selectedLevel, setSelectedLevel] = useState('');
   const [schoolInput, setSchoolInput] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  // 친구 정보 입력 상태
+  const [friendName, setFriendName] = useState('');
+  const [friendPhone, setFriendPhone] = useState('');
 
   const handleSave = async () => {
     try {
@@ -153,6 +157,16 @@ export default function ProfileCard({
     if (platform && account) {
       const entry = `${platform}:${account}`;
       addTag('sns', entry);
+    }
+  };
+
+  const addFriendEntry = (name: string, phone: string) => {
+    if (name.trim()) {
+      const entry = phone.trim() ? `${name.trim()} (${phone.trim()})` : name.trim();
+      const currentAnswer = findAnswerByQuestionId(editingAnswers, 'best_friend');
+      const currentValue = typeof currentAnswer?.answer === 'string' ? currentAnswer.answer : '';
+      const newValue = currentValue ? `${currentValue}\n${entry}` : entry;
+      updateAnswer('best_friend', newValue);
     }
   };
 
@@ -365,6 +379,51 @@ export default function ProfileCard({
                 value={typeof answerValue === 'string' ? answerValue : ''}
                 onChange={(e) => updateAnswer(question.id, e.target.value)}
                 placeholder={question.placeholder}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm"
+              />
+            </div>
+          );
+        }
+
+        // 친구 항목인 경우 특별한 입력 폼 제공
+        if (question.id === 'best_friend') {
+          return (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={friendName}
+                  onChange={(e) => setFriendName(e.target.value)}
+                  placeholder="친구 이름"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                />
+                
+                <input
+                  type="tel"
+                  value={friendPhone}
+                  onChange={(e) => setFriendPhone(e.target.value)}
+                  placeholder="전화번호 (선택사항)"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                />
+              </div>
+              
+              <button
+                onClick={() => {
+                  addFriendEntry(friendName, friendPhone);
+                  setFriendName('');
+                  setFriendPhone('');
+                }}
+                disabled={!friendName.trim()}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm w-full md:w-auto"
+              >
+                친구 추가
+              </button>
+              
+              <textarea
+                value={typeof answerValue === 'string' ? answerValue : ''}
+                onChange={(e) => updateAnswer(question.id, e.target.value)}
+                placeholder="또는 직접 입력하세요..."
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm"
               />
