@@ -33,7 +33,7 @@ const menuItems = [
   },
   {
     id: 'help',
-    label: '도와주세요',
+    label: 'SOS',
     icon: HelpCircle,
     href: '/help',
   },

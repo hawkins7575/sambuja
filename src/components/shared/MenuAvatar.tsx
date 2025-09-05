@@ -47,7 +47,7 @@ const getMenuAvatar = (menuId: string) => {
         </div>
       );
     case 'help':
-      // 도와주세요 - 막둥이 (주로 도움 요청)
+      // SOS - 막둥이 (주로 도움 요청)
       return (
         <div className="w-4 h-4 rounded-full overflow-hidden">
           <Image src="/youngest-avatar.png" alt="막둥이" width={16} height={16} className="w-full h-full object-cover" />
