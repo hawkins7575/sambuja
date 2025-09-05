@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'sambuja-family-v3';
+const CACHE_NAME = 'sambuja-family-v4';
 const urlsToCache = [
   '/',
   '/schedule',
@@ -11,6 +11,14 @@ const urlsToCache = [
   '/eldest-avatar.png',
   '/youngest-avatar.png',
   '/manifest.json'
+];
+
+// API endpoints that should never be cached
+const NO_CACHE_URLS = [
+  '/api/',
+  'firestore.googleapis.com',
+  'firebase',
+  '_next/static/chunks/'
 ];
 
 // Install event - cache resources
@@ -47,21 +55,43 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - smart caching strategy
 self.addEventListener('fetch', (event) => {
-  // Skip caching for chrome-extension and other unsupported schemes
+  // Skip caching for non-HTTP requests
   if (!event.request.url.startsWith('http')) {
     return;
   }
 
+  // Skip caching for API calls and Firebase requests
+  const shouldNotCache = NO_CACHE_URLS.some(url => event.request.url.includes(url));
+  
+  if (shouldNotCache) {
+    // For API calls, always fetch fresh data
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // For static assets and pages, use cache-first strategy
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
+        // Cache hit - return response, but also fetch fresh data in background
         if (response) {
+          // Background fetch to update cache
+          fetch(event.request).then((freshResponse) => {
+            if (freshResponse && freshResponse.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, freshResponse.clone());
+              });
+            }
+          }).catch(() => {
+            // Silently fail background updates
+          });
+          
           return response;
         }
 
+        // No cache hit - fetch from network
         return fetch(event.request).then((response) => {
           // Check if we received a valid response
           if (!response || response.status !== 200 || response.type !== 'basic') {
@@ -73,7 +103,7 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
 
-          // Clone the response
+          // Clone the response and cache it
           const responseToCache = response.clone();
 
           caches.open(CACHE_NAME)
@@ -85,6 +115,11 @@ self.addEventListener('fetch', (event) => {
             });
 
           return response;
+        }).catch(() => {
+          // If network fails and we have no cache, return a basic offline response
+          if (event.request.destination === 'document') {
+            return caches.match('/');
+          }
         });
       })
   );
