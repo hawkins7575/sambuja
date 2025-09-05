@@ -97,6 +97,7 @@ export default function SchedulePage() {
   const [scheduleFilter, setScheduleFilter] = useState<'my' | 'our'>('our');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showEventDetail, setShowEventDetail] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   useEffect(() => {
     // 데이터 로드
@@ -482,14 +483,14 @@ export default function SchedulePage() {
           
           <div className="flex bg-gray-100 rounded-lg p-1">
             {[
-              { key: 'month', label: '월' },
-              { key: 'week', label: '주' },
+              { key: 'month', label: '월간' },
+              { key: 'week', label: '주간' },
               { key: 'list', label: '목록' },
             ].map((mode) => (
               <button
                 key={mode.key}
                 onClick={() => setViewMode(mode.key as 'month' | 'week' | 'list')}
-                className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 px-2 py-1 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                   viewMode === mode.key
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -967,72 +968,17 @@ export default function SchedulePage() {
 
       {viewMode === 'list' && (
         <div className="space-y-4">
-          {/* 목록 뷰 필터 */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6">
-            <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">필터</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              {/* 날짜 범위 필터 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">날짜 범위</label>
-                <select
-                  value={listFilters.dateRange}
-                  onChange={(e) => setListFilters(prev => ({ ...prev, dateRange: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm sm:text-base"
-                >
-                  <option value="all">모든 날짜</option>
-                  <option value="today">오늘</option>
-                  <option value="thisWeek">이번 주</option>
-                  <option value="thisMonth">이번 달</option>
-                  <option value="upcoming">다가오는 일정</option>
-                </select>
-              </div>
-
-              {/* 작성자 필터 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">작성자</label>
-                <select
-                  value={listFilters.creator}
-                  onChange={(e) => setListFilters(prev => ({ ...prev, creator: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm sm:text-base"
-                >
-                  <option value="all">모든 작성자</option>
-                  <option value="dad">아빠</option>
-                  <option value="eldest">짱남</option>
-                  <option value="youngest">막둥이</option>
-                </select>
-              </div>
-
-              {/* 대상자 필터 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">대상자</label>
-                <select
-                  value={listFilters.targetAudience}
-                  onChange={(e) => setListFilters(prev => ({ ...prev, targetAudience: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm sm:text-base"
-                >
-                  <option value="all">모든 대상자</option>
-                  <option value="allFamily">온 가족</option>
-                  <option value="dad">아빠</option>
-                  <option value="eldest">짱남</option>
-                  <option value="youngest">막둥이</option>
-                </select>
-              </div>
-            </div>
-
-            {/* 필터 초기화 버튼 */}
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setListFilters({
-                  dateRange: 'all',
-                  creator: 'all',
-                  targetAudience: 'all'
-                })}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                필터 초기화
-              </button>
-            </div>
+          {/* 필터 버튼 */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowFilterModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors touch-target"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
+              </svg>
+              <span>필터</span>
+            </button>
           </div>
 
           {/* 활성 필터 태그 */}
@@ -1265,6 +1211,93 @@ export default function SchedulePage() {
                   onAddComment={(content) => handleAddComment(content, selectedEvent.id)}
                 />
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 필터 모달 */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">필터 설정</h3>
+              <button
+                onClick={() => setShowFilterModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 space-y-4">
+              {/* 날짜 범위 필터 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">날짜 범위</label>
+                <select
+                  value={listFilters.dateRange}
+                  onChange={(e) => setListFilters(prev => ({ ...prev, dateRange: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                >
+                  <option value="all">모든 날짜</option>
+                  <option value="today">오늘</option>
+                  <option value="thisWeek">이번 주</option>
+                  <option value="thisMonth">이번 달</option>
+                  <option value="upcoming">다가오는 일정</option>
+                </select>
+              </div>
+
+              {/* 작성자 필터 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">작성자</label>
+                <select
+                  value={listFilters.creator}
+                  onChange={(e) => setListFilters(prev => ({ ...prev, creator: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                >
+                  <option value="all">모든 작성자</option>
+                  <option value="dad">아빠</option>
+                  <option value="eldest">짱남</option>
+                  <option value="youngest">막둥이</option>
+                </select>
+              </div>
+
+              {/* 대상자 필터 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">대상자</label>
+                <select
+                  value={listFilters.targetAudience}
+                  onChange={(e) => setListFilters(prev => ({ ...prev, targetAudience: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                >
+                  <option value="all">모든 대상자</option>
+                  <option value="allFamily">온 가족</option>
+                  <option value="dad">아빠</option>
+                  <option value="eldest">짱남</option>
+                  <option value="youngest">막둥이</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 flex space-x-3">
+              <button
+                onClick={() => {
+                  setListFilters({
+                    dateRange: 'all',
+                    creator: 'all',
+                    targetAudience: 'all'
+                  });
+                }}
+                className="flex-1 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                초기화
+              </button>
+              <button
+                onClick={() => setShowFilterModal(false)}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                적용
+              </button>
             </div>
           </div>
         </div>
