@@ -6,6 +6,8 @@ import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
 import { Comment, Goal } from '@/types';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 type User = {
   id: string;
@@ -121,6 +123,7 @@ export default function GoalsPage() {
   });
   const [editingGoal, setEditingGoal] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
+  const [editingProgress, setEditingProgress] = useState<string | null>(null);
 
   useEffect(() => {
     // 데이터 로드
@@ -191,6 +194,8 @@ export default function GoalsPage() {
   // };
 
   const updateProgress = async (goalId: string, progress: number) => {
+    if (!user) return;
+
     const updatedGoals = goals.map(goal => 
       goal.id === goalId 
         ? { 
@@ -203,16 +208,30 @@ export default function GoalsPage() {
 
     setGoals(updatedGoals);
 
-    // 목표 달성 알림 (100%가 되었을 때)
-    if (progress >= 100) {
-      const achievedGoal = updatedGoals.find(goal => goal.id === goalId);
-      if (achievedGoal) {
-        const notificationService = NotificationService.getInstance();
-        await notificationService.notifyGoalAchieved(
-          achievedGoal.owner.name,
-          achievedGoal.title
-        );
+    try {
+      // Firebase에 업데이트된 목표 저장
+      const goalDoc = doc(db, 'goals', goalId);
+      await updateDoc(goalDoc, {
+        progress: Math.max(0, Math.min(100, progress)),
+        completed: progress >= 100,
+        updatedAt: new Date()
+      });
+
+      // 100% 달성시 축하 메시지
+      if (progress >= 100) {
+        const achievedGoal = updatedGoals.find(goal => goal.id === goalId);
+        if (achievedGoal) {
+          const notificationService = NotificationService.getInstance();
+          await notificationService.notifyGoalAchieved(
+            achievedGoal.owner.name,
+            achievedGoal.title
+          );
+        }
       }
+    } catch (error) {
+      console.error('진행률 업데이트 실패:', error);
+      // 실패 알림 표시 (간단한 alert 사용)
+      alert('진행률 업데이트에 실패했습니다.');
     }
   };
 
@@ -267,6 +286,29 @@ export default function GoalsPage() {
       setGoals(goals.filter(g => g.id !== goalId));
       setShowDropdown(null);
     }
+  };
+
+  const handleUpdateProgress = (goalId: string, newProgress: number) => {
+    if (!user) return;
+    
+    // 목표 진행률 업데이트
+    const updatedGoals = goals.map(goal => 
+      goal.id === goalId 
+        ? { 
+            ...goal, 
+            progress: newProgress, 
+            completed: newProgress >= 100 
+          }
+        : goal
+    );
+    setGoals(updatedGoals);
+    
+    // 100% 달성시 축하 메시지
+    if (newProgress >= 100) {
+      alert('🎉 목표를 달성했습니다! 축하해요!');
+    }
+    
+    setEditingProgress(null);
   };
 
   const handleUpdateGoal = () => {
@@ -539,14 +581,57 @@ export default function GoalsPage() {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-600">진행률</span>
-                      <span className="text-sm font-medium text-gray-900">{goal.progress}%</span>
+                      {editingProgress === goal.id ? (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900">{goal.progress}%</span>
+                          <button
+                            onClick={() => setEditingProgress(null)}
+                            className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 bg-blue-50 rounded"
+                          >
+                            완료
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setEditingProgress(goal.id)}
+                          className="text-sm font-medium text-gray-900 hover:text-blue-600 flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-50 transition-colors"
+                        >
+                          <span>{goal.progress}%</span>
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(goal.progress)}`}
-                        style={{ width: `${goal.progress}%` }}
-                      />
-                    </div>
+                    
+                    {editingProgress === goal.id ? (
+                      <div className="space-y-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={goal.progress}
+                          onChange={(e) => handleUpdateProgress(goal.id, parseInt(e.target.value))}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                          style={{
+                            background: `linear-gradient(to right, ${goal.progress >= 80 ? '#10b981' : goal.progress >= 50 ? '#f59e0b' : '#ef4444'} 0%, ${goal.progress >= 80 ? '#10b981' : goal.progress >= 50 ? '#f59e0b' : '#ef4444'} ${goal.progress}%, #e5e7eb ${goal.progress}%, #e5e7eb 100%)`
+                          }}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>0%</span>
+                          <span>25%</span>
+                          <span>50%</span>
+                          <span>75%</span>
+                          <span>100%</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full bg-gray-200 rounded-full h-2 cursor-pointer hover:bg-gray-300 transition-colors" onClick={() => setEditingProgress(goal.id)}>
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(goal.progress)}`}
+                          style={{ width: `${goal.progress}%` }}
+                        />
+                      </div>
+                    )}
                     
                     {isOwner && (
                       <div className="flex items-center space-x-2 mt-2">
