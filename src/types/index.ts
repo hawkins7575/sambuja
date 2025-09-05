@@ -1,3 +1,5 @@
+import { ProfileAnswer } from '@/lib/profileTemplate';
+
 export interface User {
   id: string;
   email: string;
@@ -5,6 +7,7 @@ export interface User {
   role: 'dad' | 'eldest' | 'youngest';
   avatar_url?: string;
   created_at: string;
+  profileAnswers?: ProfileAnswer[];
 }
 
 export interface Post {
