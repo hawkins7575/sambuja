@@ -647,44 +647,44 @@ export default function ProfileCard({
       </div>
 
       {/* 컨텐츠 영역 - 카테고리별 구성 */}
-      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-8">
-        {profileCategories.map((category) => {
+      <div className="px-0 py-2 md:p-6 lg:p-8 space-y-3 md:space-y-8">
+        {profileCategories.map((category, index) => {
           const categoryQuestions = questions.filter(q => category.questions.includes(q.id));
           
           return (
-            <div key={category.id} className="bg-white rounded-2xl md:rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+            <div key={category.id} className="md:bg-white md:rounded-3xl md:shadow-lg md:border md:border-gray-100 md:overflow-hidden">
               {/* 카테고리 헤더 */}
-              <div className={`relative bg-gradient-to-r ${category.color} px-3 py-3 md:px-6 md:py-4`}>
-                <div className="absolute inset-0 bg-white/10"></div>
+              <div className={`relative ${index > 0 ? 'border-t border-gray-200 pt-3' : ''} md:border-t-0 md:pt-0 md:bg-gradient-to-r md:${category.color} px-0 py-2 md:px-6 md:py-4`}>
+                <div className="absolute inset-0 bg-white/10 hidden md:block"></div>
                 <div className="relative flex items-center space-x-2 md:space-x-4">
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
-                    <span className="text-xl md:text-2xl">{category.icon}</span>
+                  <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-r md:bg-white/20 md:backdrop-blur-sm rounded-lg md:rounded-xl flex items-center justify-center shadow-sm md:shadow-lg" style={{background: `linear-gradient(to right, ${category.color.replace('from-', '').replace(' to-', ', ').replace('-200', '').replace('-300', '')})`}}>
+                    <span className="text-sm md:text-2xl text-white md:text-white">{category.icon}</span>
                   </div>
                   <div>
-                    <h3 className="text-base md:text-xl font-bold text-white mb-0 md:mb-1">{category.title}</h3>
-                    <p className="text-white/80 text-xs md:text-sm">{category.description}</p>
+                    <h3 className="text-sm md:text-xl font-bold text-gray-800 md:text-white mb-0">{category.title}</h3>
+                    <p className="text-xs md:text-sm text-gray-600 md:text-white/80 hidden md:block">{category.description}</p>
                   </div>
                 </div>
               </div>
 
               {/* 카테고리 내 질문들 */}
-              <div className="p-3 md:p-6">
-                <div className="grid grid-cols-1 gap-3 md:gap-6 md:grid-cols-2">
+              <div className="px-0 py-2 md:p-6">
+                <div className="space-y-3 md:grid md:grid-cols-1 md:gap-6 lg:grid-cols-2">
                   {categoryQuestions.map((question) => (
                     <div 
                       key={question.id} 
-                      className="bg-gradient-to-br from-gray-50 to-white rounded-xl md:rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+                      className="bg-gray-50 md:bg-gradient-to-br md:from-gray-50 md:to-white rounded-lg md:rounded-2xl border border-gray-200 md:hover:border-gray-300 md:hover:shadow-md transition-all duration-200 overflow-hidden"
                     >
                       {/* 질문 제목 */}
-                      <div className="bg-gray-100/50 px-3 py-2 md:px-4 md:py-3 border-b border-gray-200">
+                      <div className="bg-gray-100 md:bg-gray-100/50 px-3 py-2 md:px-4 md:py-3 border-b border-gray-200">
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-semibold text-gray-800 text-sm md:text-sm">{question.question}</h4>
+                          <h4 className="font-medium md:font-semibold text-gray-800 text-xs md:text-sm">{question.question}</h4>
                           {question.required && <span className="text-red-500 text-xs">*</span>}
                         </div>
                       </div>
                       
                       {/* 답변 내용 */}
-                      <div className="p-3 md:p-4">
+                      <div className="p-2 md:p-4">
                         {renderQuestionInput(question)}
                       </div>
                     </div>
@@ -695,20 +695,20 @@ export default function ProfileCard({
           );
         })}
       </div>
-      {/* 프로필 완성도 카드 */}
-      <div className="p-3 md:p-6 lg:p-8">
-        <div className="bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 rounded-2xl md:rounded-3xl p-4 md:p-8 border border-sky-100 shadow-sm">
-          <div className="text-center">
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl mx-auto mb-4 md:mb-6 flex items-center justify-center shadow-lg">
-              <span className="text-white text-xl md:text-2xl">✨</span>
+      {/* 프로필 완성도 카드 - 모바일에서는 구분선으로 단순화 */}
+      <div className="border-t border-gray-200 pt-3 mt-3 md:p-6 lg:p-8">
+        <div className="md:bg-gradient-to-br md:from-sky-50 md:via-blue-50 md:to-indigo-50 md:rounded-3xl p-0 md:p-8 md:border md:border-sky-100 md:shadow-sm">
+          <div className="text-center md:text-center">
+            <div className="w-8 h-8 md:w-14 md:h-14 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg md:rounded-xl mx-auto mb-2 md:mb-6 flex items-center justify-center shadow-sm md:shadow-lg">
+              <span className="text-white text-sm md:text-2xl">✨</span>
             </div>
-            <h3 className="font-bold text-gray-800 mb-2 md:mb-3 text-lg">프로필 완성도</h3>
-            <p className="text-gray-600 text-sm md:text-base mb-4 md:mb-6 leading-relaxed px-2 md:px-0">
+            <h3 className="font-semibold md:font-bold text-gray-800 mb-2 md:mb-3 text-sm md:text-lg">프로필 완성도</h3>
+            <p className="text-gray-600 text-xs md:text-base mb-3 md:mb-6 leading-relaxed px-0 md:px-0 hidden md:block">
               카테고리별로 정보를 입력해서 완성도를 높여보세요!
             </p>
             
             {/* 카테고리별 완성도 */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
+            <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4 mb-3 md:mb-6">
               {profileCategories.map((category) => {
                 const categoryQuestions = questions.filter(q => category.questions.includes(q.id));
                 const completedCount = categoryQuestions.filter(q => {
@@ -720,17 +720,17 @@ export default function ProfileCard({
                 const completionRate = categoryQuestions.length > 0 ? (completedCount / categoryQuestions.length) * 100 : 0;
                 
                 return (
-                  <div key={category.id} className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border border-gray-200 shadow-sm">
-                    <div className="flex items-center space-x-2 md:space-x-3 mb-2 md:mb-3">
-                      <span className="text-base md:text-xl">{category.icon}</span>
+                  <div key={category.id} className="bg-gray-50 md:bg-white rounded-lg md:rounded-2xl p-2 md:p-4 border border-gray-200 md:shadow-sm">
+                    <div className="flex items-center space-x-1 md:space-x-3 mb-1 md:mb-3">
+                      <span className="text-xs md:text-xl">{category.icon}</span>
                       <div className="flex-1 text-left">
-                        <h4 className="font-semibold text-gray-800 text-xs md:text-sm">{category.title}</h4>
+                        <h4 className="font-medium md:font-semibold text-gray-800 text-xs md:text-sm truncate">{category.title}</h4>
                         <p className="text-xs text-gray-500">{completedCount}/{categoryQuestions.length}</p>
                       </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 md:h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-1 md:h-2">
                       <div 
-                        className={`bg-gradient-to-r ${category.color} h-1.5 md:h-2 rounded-full transition-all duration-500`}
+                        className={`bg-gradient-to-r ${category.color} h-1 md:h-2 rounded-full transition-all duration-500`}
                         style={{ width: `${completionRate}%` }}
                       />
                     </div>

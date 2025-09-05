@@ -28,16 +28,16 @@ export default function ProfilePage() {
   if (users.length === 0) return <div className="flex justify-center items-center min-h-64"><div className="text-gray-500">로딩 중...</div></div>;
 
   return (
-    <div className="space-y-3 md:space-y-6">
+    <div className="space-y-2 md:space-y-6 -mx-4 md:mx-0">
 
       {/* 가족 구성원 선택 탭 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 md:p-3">
+      <div className="bg-white md:rounded-xl shadow-sm border-0 md:border border-gray-100 p-2 md:p-3 mx-4 md:mx-0">
         <div className="flex space-x-1 md:space-x-2 bg-gradient-to-r from-sky-50 via-blue-50 to-sky-50 rounded-lg p-2">
           {users.map((member) => (
             <button
               key={member.id}
               onClick={() => setSelectedMember(member.id)}
-              className={`flex-1 py-3 px-2 md:py-4 md:px-3 rounded-lg font-medium text-sm md:text-sm transition-all duration-300 ${
+              className={`flex-1 py-2 px-1 md:py-4 md:px-3 rounded-lg font-medium text-sm md:text-sm transition-all duration-300 ${
                 selectedMember === member.id
                   ? 'bg-white text-sky-600 shadow-md ring-1 ring-sky-200'
                   : 'text-gray-600 hover:text-sky-500 hover:bg-white/50'
@@ -51,7 +51,7 @@ export default function ProfilePage() {
                 }`}>
                   <Avatar user={member} size="sm" />
                 </div>
-                <span className="font-semibold text-sm md:text-base">{member.name}</span>
+                <span className="font-medium text-xs md:text-base">{member.name}</span>
               </div>
             </button>
           ))}
@@ -60,15 +60,17 @@ export default function ProfilePage() {
 
       {/* 선택된 구성원의 프로필 카드 */}
       {selectedMemberData && (
-        <ProfileCard
-          user={selectedMemberData}
-          questions={profileQuestions}
-          isOwner={user ? (user.role === 'dad' || user.id === selectedMember) : false}
-        />
+        <div className="mx-4 md:mx-0">
+          <ProfileCard
+            user={selectedMemberData}
+            questions={profileQuestions}
+            isOwner={user ? (user.role === 'dad' || user.id === selectedMember) : false}
+          />
+        </div>
       )}
 
-      {/* 설명 */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-blue-50 to-sky-50 rounded-xl border border-sky-100 shadow-sm">
+      {/* 설명 - 모바일에서는 숨김 */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-blue-50 to-sky-50 rounded-xl border border-sky-100 shadow-sm mx-4 md:mx-0 hidden md:block">
         <div className="absolute top-0 right-0 w-20 h-20 md:w-32 md:h-32 bg-gradient-to-bl from-sky-200/20 to-transparent rounded-bl-full"></div>
         <div className="absolute bottom-0 left-0 w-16 h-16 md:w-24 md:h-24 bg-gradient-to-tr from-blue-200/20 to-transparent rounded-tr-full"></div>
         
