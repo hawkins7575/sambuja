@@ -1,29 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Edit, Save, X, ExternalLink } from 'lucide-react';
 import { User } from '@/types';
 import { getRoleName, getRoleColor } from '@/lib/utils';
-import { ProfileQuestion, ProfileAnswer, findAnswerByQuestionId } from '@/lib/profileTemplate';
+import { ProfileQuestion, ProfileAnswer, findAnswerByQuestionId, getDefaultAnswers } from '@/lib/profileTemplate';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import Image from 'next/image';
 
 interface ProfileCardProps {
   user: User;
   questions: ProfileQuestion[];
-  answers: ProfileAnswer[];
-  onUpdateAnswers: (answers: ProfileAnswer[]) => void;
   isOwner: boolean;
 }
 
 export default function ProfileCard({ 
   user, 
   questions, 
-  answers, 
-  onUpdateAnswers, 
   isOwner 
 }: ProfileCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editingAnswers, setEditingAnswers] = useState<ProfileAnswer[]>(answers);
+  const [answers, setAnswers] = useState<ProfileAnswer[]>(getDefaultAnswers());
+  const [editingAnswers, setEditingAnswers] = useState<ProfileAnswer[]>(getDefaultAnswers());
   
   // SNS 입력 상태
   const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -34,15 +33,31 @@ export default function ProfileCard({
   const [schoolInput, setSchoolInput] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
 
-  const handleSave = () => {
-    onUpdateAnswers(editingAnswers);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const userDocRef = doc(db, 'users', user.id);
+      await updateDoc(userDocRef, {
+        profileAnswers: editingAnswers
+      });
+      setAnswers(editingAnswers);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('프로필 저장 실패:', error);
+      alert('프로필 저장에 실패했습니다.');
+    }
   };
 
   const handleCancel = () => {
     setEditingAnswers(answers);
     setIsEditing(false);
   };
+
+  useEffect(() => {
+    if (user.profileAnswers) {
+      setAnswers(user.profileAnswers);
+      setEditingAnswers(user.profileAnswers);
+    }
+  }, [user.profileAnswers]);
 
   const updateAnswer = (questionId: string, value: string | string[]) => {
     setEditingAnswers(prev => 

@@ -18,115 +18,12 @@ type User = {
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 
-const mockHelpRequests: HelpRequest[] = [
-  {
-    id: '1',
-    title: '아빠, 수학 숙제 좀 도와주세요',
-    description: '분수 계산이 너무 어려워요. 특히 통분하는 방법을 모르겠어요. 내일까지 숙제를 해야 하는데 도와주세요!',
-    target_audience: 'dad' as const,
-    status: 'open' as const,
-    requester_id: '3',
-    requester: {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T09:00:00Z',
-    updated_at: '2025-09-02T09:00:00Z',
-  },
-  {
-    id: '2',
-    title: '장남아, 컴퓨터 프로그램 설치 좀 도와줘',
-    description: '새 컴퓨터에 필요한 프로그램들을 설치하고 싶은데 어떤 것들이 필요한지 모르겠어요. 추천해주시고 설치도 도와주세요.',
-    target_audience: 'eldest' as const,
-    status: 'in_progress' as const,
-    requester_id: '1',
-    requester: {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    helper_id: '2',
-    helper: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-01T14:30:00Z',
-    updated_at: '2025-09-02T10:15:00Z',
-  },
-  {
-    id: '3',
-    title: '아빠, 축구 연습 같이 해요',
-    description: '축구 실력을 늘리고 싶어요. 드리블과 슈팅 연습을 같이 해주실 분 계신가요? 주말에 시간 되실 때 부탁드려요.',
-    target_audience: 'dad' as const,
-    status: 'completed' as const,
-    requester_id: '2',
-    requester: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    helper_id: '1',
-    helper: {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-08-30T16:00:00Z',
-    updated_at: '2025-09-01T18:30:00Z',
-  },
-  {
-    id: '4',
-    title: '누구든지 같이 게임해요!',
-    description: '새로 산 보드게임이 너무 재미있어요! 가족 모두 같이 하면 좋겠는데 시간 되실 때 같이 해요!',
-    target_audience: 'all' as const,
-    status: 'open' as const,
-    requester_id: '3',
-    requester: {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T20:00:00Z',
-    updated_at: '2025-09-02T20:00:00Z',
-  },
-];
 
-const mockComments: Comment[] = [
-  {
-    id: '1',
-    content: '분수 계산은 처음엔 어려울 수 있어. 천천히 함께 해보자!',
-    target_type: 'help',
-    target_id: '1',
-    author_id: '1',
-    author: {
-      id: '1',
-      name: '아빠',
-      role: 'dad',
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T09:30:00Z',
-  },
-];
 
 export default function HelpPage() {
   const { user } = useAuthStore();
-  const [helpRequests, setHelpRequests] = useState(mockHelpRequests);
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'open' | 'in_progress' | 'completed'>('all');
   const [newRequest, setNewRequest] = useState({ title: '', description: '', target_audience: 'all' });

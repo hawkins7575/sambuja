@@ -10,8 +10,6 @@ import Avatar from '@/components/shared/Avatar';
 export default function ProfilePage() {
   const { user, users } = useAuthStore();
   const [selectedMember, setSelectedMember] = useState<string>('');
-  const [profileAnswers, setProfileAnswers] = useState<{ [userId: string]: ProfileAnswer[] }>({});
-
   useEffect(() => {
     // 기본적으로 첫 번째 사용자 선택 (로그인 상태와 무관)
     if (users.length > 0 && !selectedMember) {
@@ -22,25 +20,9 @@ export default function ProfilePage() {
     if (user && users.length > 0) {
       setSelectedMember(user.id);
     }
-
-    // 모든 가족 구성원의 기본 프로필 데이터 로드
-    const allAnswers: { [userId: string]: ProfileAnswer[] } = {};
-    users.forEach(member => {
-      allAnswers[member.id] = getDefaultAnswers();
-    });
-    setProfileAnswers(allAnswers);
-  }, [user, users, selectedMember]);
-
-  const handleUpdateAnswers = (userId: string, answers: ProfileAnswer[]) => {
-    // 로컬 상태만 업데이트 (실제 서버 저장은 추후 구현)
-    setProfileAnswers(prev => ({
-      ...prev,
-      [userId]: answers,
-    }));
-  };
+  }, [user, users]);
 
   const selectedMemberData = users.find(member => member.id === selectedMember);
-  const selectedMemberAnswers = profileAnswers[selectedMember] || getDefaultAnswers();
 
   // 사용자 목록이 없으면 로딩 표시
   if (users.length === 0) return <div className="flex justify-center items-center min-h-64"><div className="text-gray-500">로딩 중...</div></div>;
@@ -81,8 +63,6 @@ export default function ProfilePage() {
         <ProfileCard
           user={selectedMemberData}
           questions={profileQuestions}
-          answers={selectedMemberAnswers}
-          onUpdateAnswers={(answers) => handleUpdateAnswers(selectedMember, answers)}
           isOwner={user ? (user.role === 'dad' || user.id === selectedMember) : false}
         />
       )}

@@ -10,84 +10,14 @@ import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 import { updateEvent, deleteEvent, createEvent } from '@/lib/firebase/events';
 
-const mockEvents: Event[] = [
-  {
-    id: '1',
-    title: '짱남 축구 경기',
-    description: '학교 대표팀 축구 경기가 있어요. 응원 와주세요!',
-    start_date: '2025-09-05T15:00:00Z',
-    end_date: '2025-09-05T17:00:00Z',
-    target_audience: 'all' as const,
-    created_by: '2',
-    creator: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T10:00:00Z',
-  },
-  {
-    id: '2',
-    title: '막둥이 학부모 상담',
-    description: '2학기 성적 및 학교생활 상담이 있습니다.',
-    start_date: '2025-09-07T14:00:00Z',
-    end_date: '2025-09-07T15:00:00Z',
-    target_audience: 'youngest' as const,
-    created_by: '1',
-    creator: {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-01T09:30:00Z',
-  },
-  {
-    id: '3',
-    title: '가족 영화 관람',
-    description: '주말에 온 가족이 함께 영화를 보러 가요!',
-    start_date: '2025-09-08T19:30:00Z',
-    end_date: '2025-09-08T22:00:00Z',
-    target_audience: 'all' as const,
-    created_by: '3',
-    creator: {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T16:20:00Z',
-  },
-];
 
 const daysInWeek = ['일', '월', '화', '수', '목', '금', '토'];
 
-const mockComments: Comment[] = [
-  {
-    id: '1',
-    content: '축구 경기 꼭 보러 갈게!',
-    target_type: 'event',
-    target_id: '1',
-    author_id: '1',
-    author: {
-      id: '1',
-      name: '아빠',
-      role: 'dad',
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-02T11:00:00Z',
-  },
-];
 
 export default function SchedulePage() {
   const { user, users, loadUsers } = useAuthStore();
   const { events, loadAllData } = useAppStore();
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showForm, setShowForm] = useState(false);

@@ -20,99 +20,11 @@ type User = {
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 
-const mockComments: Comment[] = [
-  {
-    id: '1',
-    content: '운동 하나도 꽃꽃히 하시네요! 응원합니다!',
-    target_type: 'goal',
-    target_id: '1',
-    author_id: '2',
-    author: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest',
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    created_at: '2025-09-01T10:00:00Z',
-  },
-];
-
-const mockGoals: Goal[] = [
-  {
-    id: '1',
-    title: '매일 30분 운동하기',
-    description: '건강한 몸을 만들기 위해 매일 30분씩 운동하기로 했어요. 푸시업, 윗몸일으키기, 조깅 등을 번갈아가며!',
-    target_date: '2025-12-31',
-    completed: false,
-    owner_id: '1',
-    owner: {
-      id: '1',
-      name: '아빠',
-      role: 'dad' as const,
-      email: 'dad@example.com',
-      created_at: '2025-01-01',
-    },
-    progress: 65,
-    created_at: '2025-09-01T09:00:00Z',
-  },
-  {
-    id: '2',
-    title: '수학 성적 90점 이상 받기',
-    description: '이번 학기 수학 시험에서 90점 이상을 받는 것이 목표예요. 매일 복습하고 모르는 것은 질문할게요!',
-    target_date: '2025-11-30',
-    completed: false,
-    owner_id: '2',
-    owner: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    progress: 80,
-    created_at: '2025-08-15T14:20:00Z',
-  },
-  {
-    id: '3',
-    title: '책 한 달에 2권 읽기',
-    description: '독서 습관을 기르기 위해 한 달에 최소 2권씩 책을 읽기로 했어요. 다양한 장르에 도전해볼 거예요!',
-    target_date: '2025-12-31',
-    completed: false,
-    owner_id: '3',
-    owner: {
-      id: '3',
-      name: '막뚱이',
-      role: 'youngest' as const,
-      email: 'youngest@example.com',
-      created_at: '2025-01-01',
-    },
-    progress: 45,
-    created_at: '2025-09-01T16:30:00Z',
-  },
-  {
-    id: '4',
-    title: '피아노 곡 하나 완주하기',
-    description: '좋아하는 피아노 곡을 처음부터 끝까지 완벽하게 연주할 수 있도록 연습하기!',
-    target_date: '2025-10-15',
-    completed: true,
-    owner_id: '2',
-    owner: {
-      id: '2',
-      name: '짱남',
-      role: 'eldest' as const,
-      email: 'eldest@example.com',
-      created_at: '2025-01-01',
-    },
-    progress: 100,
-    created_at: '2025-07-20T10:00:00Z',
-  },
-];
 
 export default function GoalsPage() {
   const { user, users, loadUsers } = useAuthStore();
   const { goals, setGoals, loadAllData } = useAppStore();
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [filterBy, setFilterBy] = useState<'all' | 'my' | 'completed' | 'pending'>('all');
   const [newGoal, setNewGoal] = useState({

@@ -8,79 +8,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Avatar from '@/components/shared/Avatar';
 
-// Mock data for latest content
-const mockLatestPosts = [
-  {
-    id: '1',
-    title: '오늘 회사에서 있었던 일',
-    content: '오늘 회사에서 프레젠테이션을 성공적으로 마쳤어요! 여러분이 응원해줘서 용기가 났답니다. 감사해요 😊',
-    author: { id: '1', name: '아빠', role: 'dad' as const, email: 'dad@example.com', created_at: '2025-01-01' },
-    target_audience: 'all' as const,
-    created_at: '2025-09-02T10:30:00Z',
-  },
-  {
-    id: '2',
-    title: '아빠, 축구 가르쳐줘서 고마워요!',
-    content: '오늘 체육시간에 축구를 했는데 우리 팀이 이겼어요! 골도 한 개 넣었답니다.',
-    author: { id: '2', name: '짱남', role: 'eldest' as const, email: 'eldest@example.com', created_at: '2025-01-01' },
-    target_audience: 'dad' as const,
-    created_at: '2025-09-02T14:15:00Z',
-  },
-];
 
-const mockLatestHelp = [
-  {
-    id: '1',
-    title: '아빠, 수학 숙제 좀 도와주세요',
-    description: '분수 계산이 너무 어려워요. 특히 통분하는 방법을 모르겠어요.',
-    requester: { id: '3', name: '막뚱이', role: 'youngest' as const, email: 'youngest@example.com', created_at: '2025-01-01' },
-    status: 'open' as const,
-    target_audience: 'dad' as const,
-    created_at: '2025-09-02T09:00:00Z',
-  },
-];
 
-const mockLatestEvents = [
-  {
-    id: '1',
-    title: '장남 축구 경기',
-    description: '학교 대표팀 축구 경기가 있어요. 응원 와주세요!',
-    start_date: '2025-09-05T15:00:00Z',
-    creator: { id: '2', name: '짱남', role: 'eldest' as const, email: 'eldest@example.com', created_at: '2025-01-01' },
-    created_at: '2025-09-02T10:00:00Z',
-  },
-  {
-    id: '2',
-    title: '가족 영화 관람',
-    description: '주말에 온 가족이 함께 영화를 보러 가요!',
-    start_date: '2025-09-08T19:30:00Z',
-    creator: { id: '3', name: '막뚱이', role: 'youngest' as const, email: 'youngest@example.com', created_at: '2025-01-01' },
-    created_at: '2025-09-02T16:20:00Z',
-  },
-];
 
-const mockLatestGoals = [
-  {
-    id: '1',
-    title: '매일 30분 운동하기',
-    description: '건강한 몸을 만들기 위해 매일 30분씩 운동하기로 했어요.',
-    owner: { id: '1', name: '아빠', role: 'dad' as const, email: 'dad@example.com', created_at: '2025-01-01' },
-    progress: 65,
-    completed: false,
-    target_date: '2025-12-31',
-    created_at: '2025-09-01T09:00:00Z',
-  },
-  {
-    id: '2',
-    title: '피아노 곡 하나 완주하기',
-    description: '좋아하는 피아노 곡을 처음부터 끝까지 완벽하게 연주할 수 있도록 연습하기!',
-    owner: { id: '2', name: '짱남', role: 'eldest' as const, email: 'eldest@example.com', created_at: '2025-01-01' },
-    progress: 100,
-    completed: true,
-    target_date: '2025-10-15',
-    created_at: '2025-07-20T10:00:00Z',
-  },
-];
 
 // const quickActions = [
 //   {
