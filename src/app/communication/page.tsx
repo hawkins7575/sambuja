@@ -179,7 +179,7 @@ export default function CommunicationPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <button
           onClick={() => setShowWriteForm(true)}
@@ -191,7 +191,7 @@ export default function CommunicationPage() {
       </div>
 
       {/* 검색 및 필터 */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -203,57 +203,27 @@ export default function CommunicationPage() {
           />
         </div>
         
-        <div className="space-y-4">
-          {/* 작성자 필터 */}
-          <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">작성자</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { key: 'all', label: '전체' },
-                { key: 'dad', label: '아빠' },
-                { key: 'eldest', label: '장남' },
-                { key: 'youngest', label: '막둥이' },
-              ].map((filter) => (
-                <button
-                  key={filter.key}
-                  onClick={() => setSelectedAuthor(filter.key as 'dad' | 'eldest' | 'youngest' | 'all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 min-h-[32px] ${
-                    selectedAuthor === filter.key
-                      ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95'
-                  }`}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
+        {/* 작성자 필터 - 드롭다운 */}
+        <div>
+          <div className="flex items-center space-x-2 mb-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">작성자 필터</span>
           </div>
-          
-          {/* 대상별 필터 */}
-          <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">대상별</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { key: 'all', label: '전체' },
-                { key: 'to_me', label: '나에게' },
-                { key: 'my_posts', label: '내가 쓴 글' },
-              ].map((filter) => (
-                <button
-                  key={filter.key}
-                  onClick={() => {
-                    // 추후 구현 예정
-                  }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 min-h-[32px] bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95"
-                >
-                  {filter.label}
-                </button>
-              ))}
+          <div className="relative">
+            <select
+              value={selectedAuthor}
+              onChange={(e) => setSelectedAuthor(e.target.value as 'dad' | 'eldest' | 'youngest' | 'all')}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white appearance-none cursor-pointer"
+            >
+              <option value="all">전체 글 보기</option>
+              <option value="dad">아빠 글만</option>
+              <option value="eldest">장남 글만</option>
+              <option value="youngest">막둥이 글만</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           </div>
         </div>
