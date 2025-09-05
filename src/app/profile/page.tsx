@@ -5,6 +5,7 @@ import { useAuthStore } from '@/lib/store';
 import { profileQuestions, getDefaultAnswers, ProfileAnswer } from '@/lib/profileTemplate';
 import ProfileCard from '@/components/profile/ProfileCard';
 import Avatar from '@/components/shared/Avatar';
+import { UserTabsSkeleton, ProfileCardSkeleton } from '@/components/ui/Skeleton';
 
 
 export default function ProfilePage() {
@@ -25,7 +26,16 @@ export default function ProfilePage() {
   const selectedMemberData = users.find(member => member.id === selectedMember);
 
   // 사용자 목록이 없으면 로딩 표시
-  if (users.length === 0) return <div className="flex justify-center items-center min-h-64"><div className="text-gray-500">로딩 중...</div></div>;
+  if (users.length === 0) {
+    return (
+      <div className="space-y-2 md:space-y-6 -mx-4 md:mx-0">
+        <UserTabsSkeleton />
+        <div className="mx-4 md:mx-0">
+          <ProfileCardSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2 md:space-y-6 -mx-4 md:mx-0">

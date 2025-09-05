@@ -3,6 +3,8 @@ import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import Layout from '@/components/layout/Layout';
 import FirebaseProvider from '@/components/providers/FirebaseProvider';
+import { ToastProvider } from '@/components/ui/Toast';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const notoSansKR = Noto_Sans_KR({
   variable: "--font-noto-sans-kr",
@@ -71,11 +73,15 @@ export default function RootLayout({
         }} />
       </head>
       <body className={`${notoSansKR.variable} font-sans antialiased min-h-screen-mobile`}>
-        <FirebaseProvider>
-          <Layout>
-            {children}
-          </Layout>
-        </FirebaseProvider>
+        <ErrorBoundary>
+          <ToastProvider>
+            <FirebaseProvider>
+              <Layout>
+                {children}
+              </Layout>
+            </FirebaseProvider>
+          </ToastProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

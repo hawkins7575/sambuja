@@ -7,6 +7,7 @@ import { getRoleName, getRoleColor } from '@/lib/utils';
 import { ProfileQuestion, ProfileAnswer, findAnswerByQuestionId, getDefaultAnswers } from '@/lib/profileTemplate';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useToast } from '@/components/ui/Toast';
 import Image from 'next/image';
 
 // 프로필 카테고리 정의
@@ -82,8 +83,10 @@ export default function ProfileCard({
   isOwner 
 }: ProfileCardProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [answers, setAnswers] = useState<ProfileAnswer[]>(getDefaultAnswers());
   const [editingAnswers, setEditingAnswers] = useState<ProfileAnswer[]>(getDefaultAnswers());
+  const { success, error } = useToast();
   
   // SNS 입력 상태
   const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -99,6 +102,9 @@ export default function ProfileCard({
   const [friendPhone, setFriendPhone] = useState('');
 
   const handleSave = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
     try {
       const userDocRef = doc(db, 'users', user.id);
       await updateDoc(userDocRef, {
@@ -106,9 +112,12 @@ export default function ProfileCard({
       });
       setAnswers(editingAnswers);
       setIsEditing(false);
-    } catch (error) {
-      console.error('프로필 저장 실패:', error);
-      alert('프로필 저장에 실패했습니다.');
+      success('프로필 저장 완료', '변경사항이 성공적으로 저장되었습니다.');
+    } catch (err) {
+      console.error('프로필 저장 실패:', err);
+      error('저장 실패', '프로필 저장 중 문제가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -627,10 +636,15 @@ export default function ProfileCard({
                 <div className="flex space-x-1 md:space-x-2">
                   <button
                     onClick={handleSave}
-                    className="flex items-center space-x-1 px-3 py-2 md:px-4 md:py-2 bg-emerald-400/90 backdrop-blur-sm text-white rounded-lg hover:bg-emerald-500 transition-all duration-200 shadow-sm"
+                    disabled={isSaving}
+                    className="flex items-center space-x-1 px-3 py-2 md:px-4 md:py-2 bg-emerald-400/90 backdrop-blur-sm text-white rounded-lg hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                   >
-                    <Save className="w-4 h-4" />
-                    <span className="font-medium text-sm">저장</span>
+                    {isSaving ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    <span className="font-medium text-sm">{isSaving ? '저장 중...' : '저장'}</span>
                   </button>
                   <button
                     onClick={handleCancel}
