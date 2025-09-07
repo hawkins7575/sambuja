@@ -158,4 +158,93 @@ body {
   .slider:focus::-moz-range-thumb {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
   }
+
+  /* Force text color for mobile input fields */
+  input, textarea, select {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #111827 !important;
+    -webkit-background-clip: text !important;
+  }
+
+  /* Mobile specific input styling */
+  @media (max-width: 768px) {
+    input, textarea, select {
+      color: #111827 !important;
+      background-color: #ffffff !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+    }
+
+    /* iOS Safari specific fixes */
+    input:focus, textarea:focus, select:focus {
+      color: #111827 !important;
+      background-color: #ffffff !important;
+      -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* WebKit autofill styles */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+      box-shadow: 0 0 0px 1000px #ffffff inset !important;
+      background-color: #ffffff !important;
+      color: #111827 !important;
+    }
+
+    /* Placeholder text visibility */
+    input::placeholder,
+    textarea::placeholder {
+      color: #6b7280 !important;
+      opacity: 1 !important;
+      -webkit-text-fill-color: #6b7280 !important;
+    }
+
+    /* Additional mobile browser fixes */
+    input[type="text"], input[type="email"], input[type="password"], input[type="search"], input[type="tel"], input[type="url"] {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* Force styles on all form elements */
+    form input, form textarea, form select {
+      color: #111827 !important;
+      background: #ffffff !important;
+      -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* Ultra-aggressive mobile overrides */
+    * input, * textarea, * select {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* Target specific component classes */
+    .family-card input, .family-card textarea,
+    div[class*="bg-white"] input, div[class*="bg-white"] textarea,
+    div[class*="rounded"] input, div[class*="rounded"] textarea {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      background-color: #ffffff !important;
+    }
+  }
+
+  /* Global mobile text fix - highest priority */
+  @media screen and (max-device-width: 768px) {
+    input, textarea, select {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      background-color: #ffffff !important;
+    }
+  }
 }
