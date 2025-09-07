@@ -18,6 +18,13 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+
+  /* Ensure inputs remain light even in dark mode */
+  input, textarea, select {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #111827 !important;
+  }
 }
 
 body {
@@ -159,12 +166,11 @@ body {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
   }
 
-  /* Force text color for mobile input fields */
+  /* Force text color for mobile input fields - REMOVED problematic webkit-background-clip */
   input, textarea, select {
     color: #111827 !important;
     background-color: #ffffff !important;
     -webkit-text-fill-color: #111827 !important;
-    -webkit-background-clip: text !important;
   }
 
   /* Mobile specific input styling */
@@ -185,21 +191,19 @@ body {
       -webkit-text-fill-color: #111827 !important;
     }
 
-    /* WebKit autofill styles */
+    /* WebKit autofill styles with transition fix */
     input:-webkit-autofill,
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,
     textarea:-webkit-autofill,
     textarea:-webkit-autofill:hover,
-    textarea:-webkit-autofill:focus,
-    select:-webkit-autofill,
-    select:-webkit-autofill:hover,
-    select:-webkit-autofill:focus {
+    textarea:-webkit-autofill:focus {
       -webkit-text-fill-color: #111827 !important;
       -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
       box-shadow: 0 0 0px 1000px #ffffff inset !important;
       background-color: #ffffff !important;
       color: #111827 !important;
+      transition: background-color 5000s ease-in-out 0s !important;
     }
 
     /* Placeholder text visibility */
@@ -223,28 +227,19 @@ body {
       -webkit-text-fill-color: #111827 !important;
     }
 
-    /* Ultra-aggressive mobile overrides */
-    * input, * textarea, * select {
+    /* Clean and simple mobile overrides */
+    input[type="text"], 
+    input[type="email"], 
+    input[type="password"], 
+    input[type="search"], 
+    input[type="tel"], 
+    input[type="url"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"] {
       color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-    }
-
-    /* Target specific component classes */
-    .family-card input, .family-card textarea,
-    div[class*="bg-white"] input, div[class*="bg-white"] textarea,
-    div[class*="rounded"] input, div[class*="rounded"] textarea {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
       background-color: #ffffff !important;
-    }
-  }
-
-  /* Global mobile text fix - highest priority */
-  @media screen and (max-device-width: 768px) {
-    input, textarea, select {
-      color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
-      background-color: #ffffff !important;
     }
   }
 }

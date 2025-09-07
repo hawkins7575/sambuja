@@ -71,6 +71,43 @@ export default function RootLayout({
             </FirebaseProvider>
           </ToastProvider>
         </ErrorBoundary>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Mobile input text color fallback
+              function fixMobileInputColors() {
+                const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+                if (isMobile) {
+                  const inputs = document.querySelectorAll('input, textarea, select');
+                  inputs.forEach((input) => {
+                    input.style.setProperty('color', '#111827', 'important');
+                    input.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+                    input.style.setProperty('background-color', '#ffffff', 'important');
+                  });
+                }
+              }
+              
+              // Run on load and when new elements are added
+              document.addEventListener('DOMContentLoaded', fixMobileInputColors);
+              
+              // Observer for dynamic content
+              if (typeof MutationObserver !== 'undefined') {
+                const observer = new MutationObserver((mutations) => {
+                  mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                      setTimeout(fixMobileInputColors, 100);
+                    }
+                  });
+                });
+                
+                observer.observe(document.body, {
+                  childList: true,
+                  subtree: true
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
