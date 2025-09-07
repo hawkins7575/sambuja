@@ -1,5 +1,6 @@
-// Service Worker for PWA
-const CACHE_NAME = 'sambuja-family-v6-mobile-fix';
+// Service Worker for PWA with aggressive update strategy
+const CACHE_NAME = `sambuja-family-v${Date.now()}`; // Dynamic cache name for immediate updates
+const STATIC_CACHE_NAME = 'sambuja-static-v1';
 const urlsToCache = [
   '/',
   '/schedule',
@@ -24,36 +25,55 @@ const NO_CACHE_URLS = [
   '.js'
 ];
 
-// Install event - cache resources
+// Install event - cache resources with immediate activation
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing with immediate activation');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Service Worker: Caching files');
+        console.log('Service Worker: Caching files with timestamp:', Date.now());
         return cache.addAll(urlsToCache);
       })
       .then(() => {
-        console.log('Service Worker: Installation complete');
+        console.log('Service Worker: Installation complete, skipping waiting');
+        // Force immediate activation of new service worker
         return self.skipWaiting();
+      })
+      .catch(error => {
+        console.error('Service Worker: Installation failed', error);
       })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and force immediate control
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker: Activating with aggressive cache cleanup');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Deleting old cache', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
+      const deletePromises = cacheNames.map((cacheName) => {
+        if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE_NAME) {
+          console.log('Service Worker: Deleting old cache', cacheName);
+          return caches.delete(cacheName);
+        }
+      });
+      return Promise.all(deletePromises);
     }).then(() => {
-      console.log('Service Worker: Activated');
+      console.log('Service Worker: Cache cleanup complete, claiming clients');
+      // Force immediate control of all clients
       return self.clients.claim();
+    }).then(() => {
+      // Notify all clients about the update
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATED',
+            message: '앱이 업데이트되었습니다. 새로고침하세요!',
+            timestamp: Date.now()
+          });
+        });
+      });
+    }).catch(error => {
+      console.error('Service Worker: Activation failed', error);
     })
   );
 });
@@ -74,56 +94,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For static assets and pages, use cache-first strategy
+  // For static assets and pages, use network-first strategy for immediate updates
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        // Cache hit - return response, but also fetch fresh data in background
-        if (response) {
-          // Background fetch to update cache
-          fetch(event.request).then((freshResponse) => {
-            if (freshResponse && freshResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, freshResponse.clone());
-              });
-            }
-          }).catch(() => {
-            // Silently fail background updates
-          });
-          
-          return response;
-        }
-
-        // No cache hit - fetch from network
-        return fetch(event.request).then((response) => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Skip caching for non-same-origin requests
-          if (!event.request.url.startsWith(self.location.origin)) {
-            return response;
-          }
-
-          // Clone the response and cache it
+        // Network success - cache the fresh response
+        if (response && response.status === 200) {
           const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            })
-            .catch((error) => {
-              console.log('Cache put failed:', error);
-            });
-
-          return response;
-        }).catch(() => {
-          // If network fails and we have no cache, return a basic offline response
-          if (event.request.destination === 'document') {
-            return caches.match('/');
-          }
-        });
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Network failed - try cache as fallback
+        return caches.match(event.request)
+          .then((response) => {
+            if (response) {
+              console.log('Service Worker: Serving from cache (offline)', event.request.url);
+              return response;
+            }
+            
+            // If nothing in cache and network failed, return offline page for documents
+            if (event.request.destination === 'document') {
+              return caches.match('/');
+            }
+          });
       })
   );
 });
@@ -186,3 +183,19 @@ function doBackgroundSync() {
   // 백그라운드에서 새 글 확인 등의 작업 수행
   console.log('Background sync triggered');
 }
+
+// Listen for skip waiting message from clients
+self.addEventListener('message', function(event) {
+  console.log('Service Worker: Message received', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Service Worker: Skip waiting requested');
+    self.skipWaiting();
+  }
+});
+
+// Force update check on focus
+self.addEventListener('focus', function() {
+  console.log('Service Worker: Window focused, checking for updates');
+  self.registration.update();
+});

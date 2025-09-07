@@ -5,6 +5,7 @@ import Layout from '@/components/layout/Layout';
 import FirebaseProvider from '@/components/providers/FirebaseProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import PWAUpdater from '@/components/PWAUpdater';
 
 const notoSansKR = Noto_Sans_KR({
   variable: "--font-noto-sans-kr",
@@ -59,20 +60,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').catch(function(error) {
-                  console.log('ServiceWorker registration failed: ', error);
-                });
-              });
-            }
-          `
-        }} />
-      </head>
       <body className={`${notoSansKR.variable} font-sans antialiased min-h-screen-mobile`}>
+        <PWAUpdater />
         <ErrorBoundary>
           <ToastProvider>
             <FirebaseProvider>
