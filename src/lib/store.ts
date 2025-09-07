@@ -115,14 +115,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   setDataLoading: (isDataLoading) => set({ isDataLoading }),
   
   loadAllData: async () => {
+    const state = get();
+    if (state.isDataLoading) return; // Prevent duplicate requests
+    
     try {
       set({ isDataLoading: true });
       
       const [posts, events, goals, helpRequests] = await Promise.all([
-        getPosts(),
-        getEvents(), 
-        getGoals(),
-        getHelpRequests()
+        getPosts().catch(err => { console.warn('Failed to load posts:', err); return []; }),
+        getEvents().catch(err => { console.warn('Failed to load events:', err); return []; }), 
+        getGoals().catch(err => { console.warn('Failed to load goals:', err); return []; }),
+        getHelpRequests().catch(err => { console.warn('Failed to load help requests:', err); return []; })
       ]);
       
       set({ 

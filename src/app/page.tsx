@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MessageCircle, Users, Calendar, Target, ArrowRight, Clock, CheckCircle } from 'lucide-react';
 import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
@@ -47,21 +47,29 @@ export default function Home() {
   const { user, setUser, users, loadUsers } = useAuthStore();
   const { posts, events, goals, helpRequests, loadAllData, isDataLoading } = useAppStore();
 
+  const loadData = useCallback(async () => {
+    try {
+      await Promise.all([loadAllData(), loadUsers()]);
+    } catch (error) {
+      console.error('Failed to load initial data:', error);
+    }
+  }, [loadAllData, loadUsers]);
+
   useEffect(() => {
-    // 데이터 로드 (한 번만 실행)
-    loadAllData();
-    loadUsers(); // 사용자 데이터도 로드
-  }, []); // 의존성 배열을 비워서 한 번만 실행
+    loadData();
+  }, [loadData]);
 
   const handleUserSelect = (selectedUser: { id: string; name: string; role: 'dad' | 'eldest' | 'youngest'; email: string; created_at: string }) => {
     setUser(selectedUser);
   };
 
-  // 최근 데이터만 표시 (각각 최대 2개)
-  const recentPosts = posts.slice(0, 2);
-  const recentEvents = events.slice(0, 2);
-  const recentGoals = goals.slice(0, 2);
-  const recentHelpRequests = helpRequests.slice(0, 2);
+  // 최근 데이터만 표시 (각각 최대 2개) - 메모이제이션으로 성능 최적화
+  const recentData = useMemo(() => ({
+    posts: posts.slice(0, 2),
+    events: events.slice(0, 2),
+    goals: goals.slice(0, 2),
+    helpRequests: helpRequests.slice(0, 2)
+  }), [posts, events, goals, helpRequests]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -88,12 +96,12 @@ export default function Home() {
           <div className="text-center py-8">
             <h2 className="text-xl font-bold text-gray-900 mb-2">삼부자 가족 사이트</h2>
             <p className="text-gray-600 mb-6">누구로 로그인 하시겠어요?</p>
-            <div className="flex justify-center space-x-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-2 justify-items-center sm:justify-center">
               {users.length > 0 ? users.map((member) => (
                 <button
                   key={member.id}
                   onClick={() => handleUserSelect(member)}
-                  className="flex flex-col items-center space-y-3 px-6 py-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 group"
+                  className="flex flex-col items-center space-y-3 px-4 py-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 group w-full max-w-[200px]"
                 >
                   <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 group-hover:border-blue-500 group-hover:scale-110 transition-all">
                     <Image 
@@ -156,10 +164,10 @@ export default function Home() {
         <div className="space-y-3">
           {isDataLoading ? (
             <div className="text-center py-4 text-gray-500">데이터를 불러오는 중...</div>
-          ) : recentPosts.length === 0 ? (
+          ) : recentData.posts.length === 0 ? (
             <div className="text-center py-4 text-gray-500">아직 게시글이 없습니다.</div>
           ) : (
-            recentPosts.map((post) => (
+            recentData.posts.map((post) => (
             <div key={post.id} className="family-card hover:shadow-md transition-shadow">
               <div className="flex items-start space-x-3">
                 <Avatar user={post.author} size="sm" />
@@ -195,10 +203,10 @@ export default function Home() {
         <div className="space-y-3">
           {isDataLoading ? (
             <div className="text-center py-4 text-gray-500">데이터를 불러오는 중...</div>
-          ) : recentHelpRequests.length === 0 ? (
+          ) : recentData.helpRequests.length === 0 ? (
             <div className="text-center py-4 text-gray-500">아직 도움 요청이 없습니다.</div>
           ) : (
-            recentHelpRequests.map((request) => (
+            recentData.helpRequests.map((request) => (
               <div key={request.id} className="family-card hover:shadow-md transition-shadow">
               <div className="flex items-start space-x-3">
                 <Avatar user={request.requester} size="sm" />
@@ -237,7 +245,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="space-y-3">
-          {events.slice(0, 2).map((event) => (
+          {recentData.events.map((event) => (
             <div key={event.id} className="family-card hover:shadow-md transition-shadow">
               <div className="flex items-start space-x-3">
                 <Avatar user={event.creator} size="sm" />
@@ -277,7 +285,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="space-y-3">
-          {goals.slice(0, 2).map((goal) => (
+          {recentData.goals.map((goal) => (
             <div key={goal.id} className={`family-card hover:shadow-md transition-shadow ${
               goal.completed ? 'bg-green-50 border-green-200' : ''
             }`}>

@@ -127,16 +127,19 @@ export async function initializeUsers(): Promise<void> {
       {
         name: '아빠',
         email: 'dad@sambuja.com',
+        phone: '010-1234-5678',
         role: 'dad' as const,
       },
       {
         name: '짱남',
-        email: 'eldest@sambuja.com', 
+        email: 'eldest@sambuja.com',
+        phone: '010-2345-6789',
         role: 'eldest' as const,
       },
       {
         name: '막뚱이',
         email: 'youngest@sambuja.com',
+        phone: '010-3456-7890',
         role: 'youngest' as const,
       }
     ];

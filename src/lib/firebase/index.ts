@@ -5,6 +5,7 @@ export * from './comments';
 export * from './events';
 export * from './goals';
 export * from './helpRequests';
+export * from './sharePosts';
 
 // Firebase 인스턴스
 export { db, auth, storage } from '../firebase';

@@ -117,6 +117,12 @@ export const profileQuestions: ProfileQuestion[] = [
     placeholder: '예: example@email.com',
   },
   {
+    id: 'phone',
+    question: '전화번호',
+    type: 'text',
+    placeholder: '예: 010-1234-5678',
+  },
+  {
     id: 'sns',
     question: 'SNS 계정',
     type: 'tags',

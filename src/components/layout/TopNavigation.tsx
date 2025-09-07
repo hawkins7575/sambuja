@@ -26,6 +26,12 @@ const menuItems = [
     href: '/profile',
   },
   {
+    id: 'schedule',
+    label: '일정',
+    icon: Calendar,
+    href: '/schedule',
+  },
+  {
     id: 'communication',
     label: '소통',
     icon: MessageCircle,
@@ -36,12 +42,6 @@ const menuItems = [
     label: 'SOS',
     icon: HelpCircle,
     href: '/help',
-  },
-  {
-    id: 'schedule',
-    label: '일정',
-    icon: Calendar,
-    href: '/schedule',
   },
   {
     id: 'goals',

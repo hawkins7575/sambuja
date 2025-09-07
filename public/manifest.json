@@ -1,48 +1,70 @@
 {
-  "name": "삼부자 패밀리",
+  "name": "삼부자 가족 소통 앱",
   "short_name": "삼부자",
-  "description": "가족 소통 및 일정 관리 앱",
+  "description": "가족 구성원들 간의 소통과 일정 관리를 위한 프라이빗 앱",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0ea5e9",
+  "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
-  "categories": ["lifestyle", "social"],
+  "categories": ["lifestyle", "productivity"],
   "lang": "ko",
   "dir": "ltr",
   "icons": [
     {
-      "src": "/dad-avatar.png",
-      "sizes": "192x192",
+      "src": "/icon-72x72.png",
+      "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/dad-avatar.png",
+      "src": "/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
       "sizes": "512x512", 
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/dad-avatar.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/dad-avatar.png", 
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "screenshots": [
+  "shortcuts": [
     {
-      "src": "/dad-avatar.png",
-      "sizes": "640x480",
-      "type": "image/png",
-      "form_factor": "wide"
+      "name": "소통하기",
+      "short_name": "소통",
+      "description": "가족과 대화하기",
+      "url": "/communication",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "일정 확인",
+      "short_name": "일정", 
+      "description": "가족 일정 보기",
+      "url": "/schedule",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "목표 관리",
+      "short_name": "목표",
+      "description": "개인 목표 관리",
+      "url": "/goals", 
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "도움 요청",
+      "short_name": "도움",
+      "description": "도움 요청하기",
+      "url": "/help",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
     }
   ]
 }
