@@ -2,6 +2,7 @@
   "name": "삼부자 가족 소통 앱",
   "short_name": "삼부자",
   "description": "가족 구성원들 간의 소통과 일정 관리를 위한 프라이빗 앱",
+  "version": "1.0.6",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

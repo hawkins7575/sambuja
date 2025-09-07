@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'sambuja-family-v5';
+const CACHE_NAME = 'sambuja-family-v6-mobile-fix';
 const urlsToCache = [
   '/',
   '/schedule',
@@ -13,12 +13,15 @@ const urlsToCache = [
   '/manifest.json'
 ];
 
-// API endpoints that should never be cached
+// API endpoints and dynamic content that should never be cached
 const NO_CACHE_URLS = [
   '/api/',
   'firestore.googleapis.com',
   'firebase',
-  '_next/static/chunks/'
+  '_next/static/chunks/',
+  '_next/static/css/',
+  '.css',
+  '.js'
 ];
 
 // Install event - cache resources
