@@ -497,7 +497,7 @@ export default function ProfileCard({
             {answerValue.map((tag, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-slate-100 to-slate-50 text-slate-600 rounded-full text-xs font-normal border border-slate-200 shadow-sm"
+                className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 rounded-full text-sm font-medium border border-slate-200 shadow-sm"
               >
                 <div className="w-1.5 h-1.5 bg-slate-400 rounded-full mr-2"></div>
                 {tag}
@@ -517,7 +517,7 @@ export default function ProfileCard({
 
       if (question.type === 'textarea' && typeof answerValue === 'string') {
         return (
-          <p className="whitespace-pre-wrap text-xs text-slate-600 leading-relaxed">
+          <p className="whitespace-pre-wrap text-sm font-medium text-slate-800 leading-relaxed">
             {answerValue}
           </p>
         );
@@ -539,7 +539,7 @@ export default function ProfileCard({
         );
       }
 
-      return <span className="text-xs text-slate-600 leading-relaxed">{answerValue}</span>;
+      return <span className="text-sm font-medium text-slate-800 leading-relaxed">{answerValue}</span>;
     }
 
     // 편집 모드
@@ -840,7 +840,7 @@ export default function ProfileCard({
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-slate-100 to-slate-50 text-slate-600 rounded-full text-xs font-normal border border-slate-200 shadow-sm"
+                  className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 rounded-full text-sm font-medium border border-slate-200 shadow-sm"
                 >
                   <div className="w-1.5 h-1.5 bg-slate-400 rounded-full mr-2"></div>
                   {tag}
@@ -974,7 +974,7 @@ export default function ProfileCard({
                   <div key={question.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:shadow-sm transition-shadow">
                     {/* 질문 제목 */}
                     <div className="mb-3">
-                      <h4 className="text-sm font-semibold text-slate-700 mb-1.5">
+                      <h4 className="text-xs font-medium text-slate-500 mb-1.5">
                         {question.question}
                         {question.required && <span className="text-rose-400 ml-1">*</span>}
                       </h4>
