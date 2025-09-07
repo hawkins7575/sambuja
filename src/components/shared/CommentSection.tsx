@@ -115,7 +115,7 @@ export default function CommentSection({
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="댓글을 입력하세요..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 outline-none resize-none text-sm"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 outline-none resize-none text-sm text-gray-900 bg-white"
               />
               <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
                 <button

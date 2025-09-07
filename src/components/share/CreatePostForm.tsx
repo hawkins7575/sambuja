@@ -254,7 +254,7 @@ export default function CreatePostForm({ user, onClose, onSubmit, initialData }:
               <select
                 value={formData.targetAudience}
                 onChange={(e) => handleInputChange('targetAudience', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="all">모든 가족구성원</option>
                 <option value="dad">아빠</option>
@@ -271,7 +271,7 @@ export default function CreatePostForm({ user, onClose, onSubmit, initialData }:
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="제목을 입력하세요"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 required
               />
             </div>
@@ -323,7 +323,7 @@ export default function CreatePostForm({ user, onClose, onSubmit, initialData }:
                     type="date"
                     value={formData.eventDate || ''}
                     onChange={(e) => handleInputChange('eventDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -332,7 +332,7 @@ export default function CreatePostForm({ user, onClose, onSubmit, initialData }:
                     type="time"
                     value={formData.eventTime || ''}
                     onChange={(e) => handleInputChange('eventTime', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                   />
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function CreatePostForm({ user, onClose, onSubmit, initialData }:
                   value={formData.location || ''}
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="위치를 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 />
               </div>
             )}

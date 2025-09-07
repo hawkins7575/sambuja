@@ -305,7 +305,7 @@ export default function RichTextEditor({
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              className={`w-full p-4 resize-none border-none outline-none font-mono text-sm leading-6 ${
+              className={`w-full p-4 resize-none border-none outline-none font-mono text-sm leading-6 text-gray-900 ${
                 dragOver ? 'bg-blue-50 border-blue-300' : 'bg-white'
               }`}
               style={{ minHeight }}
