@@ -565,7 +565,7 @@ export default function ProfileCard({
                 onFocus={() => console.log('📱 Phone input focused')}
                 onBlur={() => console.log('📱 Phone input blurred')}
                 placeholder={question.placeholder || '예: 010-1234-5678'}
-                className="w-full px-4 py-3 pl-12 border-2 border-green-300 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 outline-none transition-all duration-200 bg-white"
+                className="w-full px-4 py-3 pl-12 border-2 border-green-300 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 outline-none transition-all duration-200 bg-white text-gray-900"
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-green-600 text-lg">
                 📱
@@ -580,7 +580,7 @@ export default function ProfileCard({
             value={typeof answerValue === 'string' ? answerValue : ''}
             onChange={(e) => updateAnswer(question.id, e.target.value)}
             placeholder={question.placeholder}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300 text-gray-900"
           />
         );
 
@@ -590,7 +590,7 @@ export default function ProfileCard({
             type="date"
             value={typeof answerValue === 'string' ? answerValue : ''}
             onChange={(e) => updateAnswer(question.id, e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all duration-200 bg-white hover:border-gray-300 text-gray-900"
           />
         );
 
@@ -606,7 +606,7 @@ export default function ProfileCard({
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm text-gray-900 bg-white"
                 >
                   <option value="">학력 선택</option>
                   {educationLevels.map((level) => (
@@ -619,13 +619,13 @@ export default function ProfileCard({
                   value={schoolInput}
                   onChange={(e) => setSchoolInput(e.target.value)}
                   placeholder="학교명 입력 (예: 서정리, 한양대학교)"
-                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm text-gray-900 bg-white"
                 />
                 
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm text-gray-900 bg-white"
                 >
                   <option value="">상태 선택</option>
                   {statusOptions.map((status) => (
@@ -652,7 +652,7 @@ export default function ProfileCard({
                 onChange={(e) => updateAnswer(question.id, e.target.value)}
                 placeholder={question.placeholder}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm"
+                className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm text-gray-900 bg-white"
               />
             </div>
           );
@@ -668,7 +668,7 @@ export default function ProfileCard({
                   value={friendName}
                   onChange={(e) => setFriendName(e.target.value)}
                   placeholder="친구 이름"
-                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm text-gray-900 bg-white"
                 />
                 
                 <input
@@ -676,7 +676,7 @@ export default function ProfileCard({
                   value={friendPhone}
                   onChange={(e) => setFriendPhone(e.target.value)}
                   placeholder="전화번호 (선택사항)"
-                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm text-gray-900 bg-white"
                 />
               </div>
               
@@ -697,7 +697,7 @@ export default function ProfileCard({
                 onChange={(e) => updateAnswer(question.id, e.target.value)}
                 placeholder="또는 직접 입력하세요..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm"
+                className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm text-gray-900 bg-white"
               />
             </div>
           );
@@ -710,7 +710,7 @@ export default function ProfileCard({
             onChange={(e) => updateAnswer(question.id, e.target.value)}
             placeholder={question.placeholder}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm"
+            className="w-full px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-sm text-gray-900 bg-white"
           />
         );
 
@@ -728,7 +728,7 @@ export default function ProfileCard({
               updateAnswer(question.id, newValue);
             }}
             onFocus={() => console.log(`🩸 Select focused (${question.id})`)}
-            className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all duration-200 bg-white"
+            className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all duration-200 bg-white text-gray-900"
           >
             <option value="">선택해주세요</option>
             {question.options?.map((option, index) => {
@@ -801,7 +801,7 @@ export default function ProfileCard({
                 <select
                   value={selectedPlatform}
                   onChange={(e) => setSelectedPlatform(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm text-gray-900 bg-white"
                 >
                   <option value="">SNS 선택</option>
                   {snsOptions.map((option) => (
@@ -814,7 +814,7 @@ export default function ProfileCard({
                   value={accountInput}
                   onChange={(e) => setAccountInput(e.target.value)}
                   placeholder="계정 ID 입력"
-                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm"
+                  className="px-3 py-2 border border-gray-200 rounded focus:border-blue-500 outline-none text-sm text-gray-900 bg-white"
                 />
                 
                 <button
@@ -863,7 +863,7 @@ export default function ProfileCard({
                   e.currentTarget.value = '';
                 }
               }}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-200 bg-white hover:border-gray-300"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-200 bg-white hover:border-gray-300 text-gray-900"
             />
             <p className="text-sm md:text-xs text-gray-500">Enter를 눌러서 태그를 추가하세요</p>
           </div>
