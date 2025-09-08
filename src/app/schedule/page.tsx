@@ -9,6 +9,7 @@ import { Comment, ScheduleEvent, Event } from '@/types';
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 import { updateEvent, deleteEvent, createEvent } from '@/lib/firebase/events';
+import { createComment, getCommentsByTarget, updateComment, deleteComment } from '@/lib/firebase/comments';
 
 
 const daysInWeek = ['일', '월', '화', '수', '목', '금', '토'];
@@ -34,6 +35,26 @@ export default function SchedulePage() {
     loadAllData();
     loadUsers();
   }, []);
+
+  // 모든 일정의 댓글 로드
+  useEffect(() => {
+    const loadAllComments = async () => {
+      try {
+        const allComments: Comment[] = [];
+        for (const event of events) {
+          const eventComments = await getCommentsByTarget('event', event.id);
+          allComments.push(...eventComments);
+        }
+        setComments(allComments);
+      } catch (error) {
+        console.error('Failed to load comments:', error);
+      }
+    };
+    
+    if (events.length > 0) {
+      loadAllComments();
+    }
+  }, [events]);
   
   // 목록 뷰 필터 상태
   const [listFilters, setListFilters] = useState({
@@ -167,7 +188,8 @@ export default function SchedulePage() {
       }
     }
 
-    return filteredEvents;
+    // 최신 일정부터 정렬 (start_date 기준 내림차순)
+    return filteredEvents.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
   };
 
   const getEventsForDate = (date: Date) => {
@@ -354,20 +376,63 @@ export default function SchedulePage() {
     return options[targetAudience as keyof typeof options] || '모두';
   };
 
-  const handleAddComment = (content: string, targetId: string) => {
+  const handleAddComment = async (content: string, targetId: string) => {
     if (!user) return;
     
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      content,
-      target_type: 'event',
-      target_id: targetId,
-      author_id: user.id,
-      author: user,
-      created_at: new Date().toISOString(),
-    };
-    
-    setComments(prev => [...prev, newComment]);
+    try {
+      // Firebase에 댓글 저장
+      const commentId = await createComment({
+        content,
+        target_type: 'event',
+        target_id: targetId,
+        author_id: user.id,
+        author: user,
+      });
+
+      // 로컬 상태 업데이트
+      const newComment: Comment = {
+        id: commentId,
+        content,
+        target_type: 'event',
+        target_id: targetId,
+        author_id: user.id,
+        author: user,
+        created_at: new Date().toISOString(),
+      };
+      
+      setComments(prev => [...prev, newComment]);
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      alert('댓글 저장에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleEditComment = async (commentId: string, content: string) => {
+    try {
+      await updateComment(commentId, content);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, content, updated_at: new Date().toISOString() }
+          : comment
+      ));
+    } catch (error) {
+      console.error('Failed to edit comment:', error);
+      alert('댓글 수정에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await deleteComment(commentId);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleEventClick = (event: Event) => {
@@ -1051,6 +1116,8 @@ export default function SchedulePage() {
                   targetId={event.id}
                   comments={comments}
                   onAddComment={(content) => handleAddComment(content, event.id)}
+                  onEditComment={handleEditComment}
+                  onDeleteComment={handleDeleteComment}
                 />
               </div>
             ))
@@ -1139,6 +1206,8 @@ export default function SchedulePage() {
                   targetId={selectedEvent.id}
                   comments={comments}
                   onAddComment={(content) => handleAddComment(content, selectedEvent.id)}
+                  onEditComment={handleEditComment}
+                  onDeleteComment={handleDeleteComment}
                 />
               </div>
             </div>

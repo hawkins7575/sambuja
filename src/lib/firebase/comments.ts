@@ -37,12 +37,11 @@ export async function getCommentsByTarget(targetType: string, targetId: string):
     const q = query(
       collection(db, COMMENTS_COLLECTION),
       where('target_type', '==', targetType),
-      where('target_id', '==', targetId),
-      orderBy('created_at', 'asc')
+      where('target_id', '==', targetId)
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
+    const comments = querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -50,6 +49,9 @@ export async function getCommentsByTarget(targetType: string, targetId: string):
         created_at: data.created_at instanceof Timestamp ? data.created_at.toDate().toISOString() : data.created_at,
       } as Comment;
     });
+    
+    // 클라이언트 사이드에서 정렬
+    return comments.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   } catch (error) {
     console.error('Error getting comments by target:', error);
     throw new Error('댓글을 가져오는데 실패했습니다.');
@@ -83,12 +85,11 @@ export async function getCommentsByAuthor(authorId: string): Promise<Comment[]> 
   try {
     const q = query(
       collection(db, COMMENTS_COLLECTION),
-      where('author_id', '==', authorId),
-      orderBy('created_at', 'desc')
+      where('author_id', '==', authorId)
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
+    const comments = querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -96,6 +97,9 @@ export async function getCommentsByAuthor(authorId: string): Promise<Comment[]> 
         created_at: data.created_at instanceof Timestamp ? data.created_at.toDate().toISOString() : data.created_at,
       } as Comment;
     });
+    
+    // 클라이언트 사이드에서 정렬 (최신순)
+    return comments.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   } catch (error) {
     console.error('Error getting comments by author:', error);
     throw new Error('작성자별 댓글을 가져오는데 실패했습니다.');

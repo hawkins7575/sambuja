@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { MessageCircle, Users, Calendar, Target, ArrowRight, Clock, CheckCircle } from 'lucide-react';
 import { useAuthStore, useAppStore } from '@/lib/store';
-import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
+import { getRoleName, getRoleColor, getRelativeTime, renderTextWithLinks } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 import Avatar from '@/components/shared/Avatar';
@@ -181,7 +181,7 @@ export default function Home() {
                     <span className="text-xs text-gray-500">{getRelativeTime(post.created_at)}</span>
                   </div>
                   <h4 className="font-medium text-gray-900 mb-1 text-sm">{post.title}</h4>
-                  <p className="text-gray-600 text-xs line-clamp-2">{post.content}</p>
+                  <div className="text-gray-600 text-xs line-clamp-2">{renderTextWithLinks(post.content)}</div>
                 </div>
               </div>
             </div>

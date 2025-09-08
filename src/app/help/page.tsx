@@ -18,6 +18,7 @@ type User = {
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 import { createHelpRequest, deleteHelpRequest } from '@/lib/firebase/helpRequests';
+import { createComment, getCommentsByTarget, updateComment, deleteComment } from '@/lib/firebase/comments';
 
 
 
@@ -127,20 +128,63 @@ export default function HelpPage() {
     return options[targetAudience as keyof typeof options] || '모두';
   };
 
-  const handleAddComment = (content: string, targetId: string) => {
+  const handleAddComment = async (content: string, targetId: string) => {
     if (!user) return;
     
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      content,
-      target_type: 'help',
-      target_id: targetId,
-      author_id: user.id,
-      author: user,
-      created_at: new Date().toISOString(),
-    };
-    
-    setComments(prev => [...prev, newComment]);
+    try {
+      // Firebase에 댓글 저장
+      const commentId = await createComment({
+        content,
+        target_type: 'help',
+        target_id: targetId,
+        author_id: user.id,
+        author: user,
+      });
+
+      // 로컬 상태 업데이트
+      const newComment: Comment = {
+        id: commentId,
+        content,
+        target_type: 'help',
+        target_id: targetId,
+        author_id: user.id,
+        author: user,
+        created_at: new Date().toISOString(),
+      };
+      
+      setComments(prev => [...prev, newComment]);
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      alert('댓글 저장에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleEditComment = async (commentId: string, content: string) => {
+    try {
+      await updateComment(commentId, content);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, content, updated_at: new Date().toISOString() }
+          : comment
+      ));
+    } catch (error) {
+      console.error('Failed to edit comment:', error);
+      alert('댓글 수정에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await deleteComment(commentId);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleEditRequest = (requestId: string) => {
@@ -212,6 +256,26 @@ export default function HelpPage() {
   useEffect(() => {
     loadAllData();
   }, []);
+
+  // 모든 도움 요청의 댓글 로드
+  useEffect(() => {
+    const loadAllComments = async () => {
+      try {
+        const allComments: Comment[] = [];
+        for (const request of helpRequests) {
+          const requestComments = await getCommentsByTarget('help', request.id);
+          allComments.push(...requestComments);
+        }
+        setComments(allComments);
+      } catch (error) {
+        console.error('Failed to load comments:', error);
+      }
+    };
+    
+    if (helpRequests.length > 0) {
+      loadAllComments();
+    }
+  }, [helpRequests]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -467,6 +531,8 @@ export default function HelpPage() {
                 targetId={request.id}
                 comments={comments}
                 onAddComment={(content) => handleAddComment(content, request.id)}
+                onEditComment={handleEditComment}
+                onDeleteComment={handleDeleteComment}
               />
             </div>
           ))

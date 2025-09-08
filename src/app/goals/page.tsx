@@ -8,6 +8,7 @@ import CommentSection from '@/components/shared/CommentSection';
 import { Comment, Goal } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { createComment, getCommentsByTarget, updateComment, deleteComment } from '@/lib/firebase/comments';
 
 type User = {
   id: string;
@@ -43,6 +44,26 @@ export default function GoalsPage() {
     loadAllData();
     loadUsers();
   }, []);
+
+  // 모든 목표의 댓글 로드
+  useEffect(() => {
+    const loadAllComments = async () => {
+      try {
+        const allComments: Comment[] = [];
+        for (const goal of goals) {
+          const goalComments = await getCommentsByTarget('goal', goal.id);
+          allComments.push(...goalComments);
+        }
+        setComments(allComments);
+      } catch (error) {
+        console.error('Failed to load comments:', error);
+      }
+    };
+    
+    if (goals.length > 0) {
+      loadAllComments();
+    }
+  }, [goals]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -180,20 +201,63 @@ export default function GoalsPage() {
     return diffDays;
   };
 
-  const handleAddComment = (content: string, targetId: string) => {
+  const handleAddComment = async (content: string, targetId: string) => {
     if (!user) return;
     
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      content,
-      target_type: 'goal',
-      target_id: targetId,
-      author_id: user.id,
-      author: user,
-      created_at: new Date().toISOString(),
-    };
-    
-    setComments(prev => [...prev, newComment]);
+    try {
+      // Firebase에 댓글 저장
+      const commentId = await createComment({
+        content,
+        target_type: 'goal',
+        target_id: targetId,
+        author_id: user.id,
+        author: user,
+      });
+
+      // 로컬 상태 업데이트
+      const newComment: Comment = {
+        id: commentId,
+        content,
+        target_type: 'goal',
+        target_id: targetId,
+        author_id: user.id,
+        author: user,
+        created_at: new Date().toISOString(),
+      };
+      
+      setComments(prev => [...prev, newComment]);
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      alert('댓글 저장에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleEditComment = async (commentId: string, content: string) => {
+    try {
+      await updateComment(commentId, content);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, content, updated_at: new Date().toISOString() }
+          : comment
+      ));
+    } catch (error) {
+      console.error('Failed to edit comment:', error);
+      alert('댓글 수정에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await deleteComment(commentId);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleEditGoal = (goalId: string) => {
@@ -654,6 +718,8 @@ export default function GoalsPage() {
                   targetId={goal.id}
                   comments={comments}
                   onAddComment={(content) => handleAddComment(content, goal.id)}
+                  onEditComment={handleEditComment}
+                  onDeleteComment={handleDeleteComment}
                 />
               </div>
             );

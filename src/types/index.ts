@@ -31,6 +31,7 @@ export interface Comment {
   author_id: string;
   author: User;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Event {

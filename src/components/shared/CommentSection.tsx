@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { MessageCircle, Send, Heart } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MessageCircle, Send, Heart, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { Comment } from '@/types';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
@@ -12,17 +12,24 @@ interface CommentSectionProps {
   targetId: string;
   comments: Comment[];
   onAddComment: (content: string) => void;
+  onEditComment: (commentId: string, content: string) => void;
+  onDeleteComment: (commentId: string) => void;
 }
 
 export default function CommentSection({
   targetType,
   targetId,
   comments,
-  onAddComment
+  onAddComment,
+  onEditComment,
+  onDeleteComment
 }: CommentSectionProps) {
   const { user } = useAuthStore();
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [showDropdown, setShowDropdown] = useState<string | null>(null);
 
   const handleSubmitComment = () => {
     if (!user || !newComment.trim()) return;
@@ -31,6 +38,47 @@ export default function CommentSection({
     setNewComment('');
     setShowCommentForm(false);
   };
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditContent(comment.content);
+    setShowDropdown(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editContent.trim() || !editingCommentId) return;
+    
+    onEditComment(editingCommentId, editContent);
+    setEditingCommentId(null);
+    setEditContent('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditContent('');
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    if (confirm('댓글을 삭제하시겠습니까?')) {
+      onDeleteComment(commentId);
+    }
+    setShowDropdown(null);
+  };
+
+  const canModifyComment = (comment: Comment) => {
+    return user && (user.id === comment.author_id || user.role === 'dad');
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowDropdown(null);
+    };
+
+    if (showDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDropdown]);
 
   const targetComments = comments.filter(
     comment => comment.target_type === targetType && comment.target_id === targetId
@@ -73,22 +121,85 @@ export default function CommentSection({
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 mb-1">
-                    <span className="font-medium text-gray-900 text-sm">
-                      {comment.author.name}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(comment.author.role)}`}>
-                        {getRoleName(comment.author.role)}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                      <span className="font-medium text-gray-900 text-sm">
+                        {comment.author.name}
                       </span>
-                      <span className="text-xs text-gray-500">
-                        {getRelativeTime(comment.created_at)}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(comment.author.role)}`}>
+                          {getRoleName(comment.author.role)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {getRelativeTime(comment.created_at)}
+                          {comment.updated_at && comment.updated_at !== comment.created_at && (
+                            <span className="ml-1">(수정됨)</span>
+                          )}
+                        </span>
+                      </div>
                     </div>
+                    
+                    {/* 수정/삭제 드롭다운 */}
+                    {canModifyComment(comment) && (
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowDropdown(showDropdown === comment.id ? null : comment.id)}
+                          className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-500" />
+                        </button>
+                        
+                        {showDropdown === comment.id && (
+                          <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[100px]">
+                            <button
+                              onClick={() => handleEditComment(comment)}
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                              <span>수정</span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>삭제</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-gray-700 text-sm leading-relaxed break-words">
-                    {comment.content}
-                  </p>
+
+                  {/* 댓글 내용 또는 수정 폼 */}
+                  {editingCommentId === comment.id ? (
+                    <div className="mt-2">
+                      <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 outline-none resize-none text-sm text-gray-900 bg-white"
+                      />
+                      <div className="flex justify-end space-x-2 mt-2">
+                        <button
+                          onClick={handleCancelEdit}
+                          className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                        >
+                          취소
+                        </button>
+                        <button
+                          onClick={handleSaveEdit}
+                          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                        >
+                          저장
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-700 text-sm leading-relaxed break-words">
+                      {comment.content}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

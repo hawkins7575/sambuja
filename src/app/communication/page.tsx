@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { Plus, Filter, Search, MessageCircle, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useAuthStore, useAppStore } from '@/lib/store';
 import { Comment } from '@/types';
-import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
+import { getRoleName, getRoleColor, getRelativeTime, renderTextWithLinks } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
 import { createPost, deletePost } from '@/lib/firebase/posts';
+import { createComment, getCommentsByTarget, updateComment, deleteComment } from '@/lib/firebase/comments';
 
 
 export default function CommunicationPage() {
@@ -25,6 +26,26 @@ export default function CommunicationPage() {
   useEffect(() => {
     loadAllData();
   }, []);
+
+  // 모든 게시글의 댓글 로드
+  useEffect(() => {
+    const loadAllComments = async () => {
+      try {
+        const allComments: Comment[] = [];
+        for (const post of posts) {
+          const postComments = await getCommentsByTarget('post', post.id);
+          allComments.push(...postComments);
+        }
+        setComments(allComments);
+      } catch (error) {
+        console.error('Failed to load comments:', error);
+      }
+    };
+    
+    if (posts.length > 0) {
+      loadAllComments();
+    }
+  }, [posts]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -132,20 +153,63 @@ export default function CommunicationPage() {
     return options[targetAudience as keyof typeof options] || '모두';
   };
 
-  const handleAddComment = (postId: string, content: string) => {
+  const handleAddComment = async (postId: string, content: string) => {
     if (!user) return;
     
-    const comment: Comment = {
-      id: Date.now().toString(),
-      content,
-      target_type: 'post',
-      target_id: postId,
-      author_id: user.id,
-      author: user,
-      created_at: new Date().toISOString(),
-    };
-    
-    setComments(prev => [...prev, comment]);
+    try {
+      // Firebase에 댓글 저장
+      const commentId = await createComment({
+        content,
+        target_type: 'post',
+        target_id: postId,
+        author_id: user.id,
+        author: user,
+      });
+
+      // 로컬 상태 업데이트
+      const comment: Comment = {
+        id: commentId,
+        content,
+        target_type: 'post',
+        target_id: postId,
+        author_id: user.id,
+        author: user,
+        created_at: new Date().toISOString(),
+      };
+      
+      setComments(prev => [...prev, comment]);
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      alert('댓글 저장에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleEditComment = async (commentId: string, content: string) => {
+    try {
+      await updateComment(commentId, content);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, content, updated_at: new Date().toISOString() }
+          : comment
+      ));
+    } catch (error) {
+      console.error('Failed to edit comment:', error);
+      alert('댓글 수정에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await deleteComment(commentId);
+      
+      // 로컬 상태 업데이트
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleEditPost = (postId: string) => {
@@ -459,13 +523,15 @@ export default function CommunicationPage() {
               </div>
               
               <h2 className="text-base font-semibold text-gray-900 mb-2">{post.title}</h2>
-              <p className="text-sm text-gray-700 mb-4 leading-relaxed">{post.content}</p>
+              <div className="text-sm text-gray-700 mb-4 leading-relaxed">{renderTextWithLinks(post.content)}</div>
               
               <CommentSection
                 targetType="post"
                 targetId={post.id}
                 comments={comments}
                 onAddComment={(content) => handleAddComment(post.id, content)}
+                onEditComment={handleEditComment}
+                onDeleteComment={handleDeleteComment}
               />
             </div>
           ))
