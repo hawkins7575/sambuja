@@ -4,19 +4,20 @@ import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 
-// Firebase 설정
+// Firebase 설정 - 환경변수 문제 해결을 위한 직접 설정
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "dummy-api-key-for-build",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "dummy-project.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "dummy-project",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "dummy-project.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:dummy-app-id",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-DUMMY",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDqK4UslCTFCKZGeO6HC7ACidruOoVW0ss",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "sambuja-11141.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sambuja-11141",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "sambuja-11141.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "625949139674",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:625949139674:web:5717ea10fc448dd2d27be3",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-E50RZ0C15S",
 };
 
-// 환경 변수 검증 (개발 환경에서만)
-if (process.env.NODE_ENV === 'development') {
+// 환경 변수 검증 (개발 환경, 서버 측에서만)
+if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+  console.log('=== FIREBASE ENVIRONMENT DEBUG ===');
   const requiredEnvVars = [
     'NEXT_PUBLIC_FIREBASE_API_KEY',
     'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', 
@@ -25,10 +26,21 @@ if (process.env.NODE_ENV === 'development') {
   ];
 
   for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      console.warn(`Missing environment variable: ${envVar}`);
+    const value = process.env[envVar];
+    if (!value) {
+      console.error(`❌ Missing environment variable: ${envVar}`);
+    } else {
+      console.log(`✅ ${envVar}: ${value.substring(0, 10)}...`);
     }
   }
+  
+  console.log('Final Firebase Config:', {
+    apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 10) + '...' : 'MISSING',
+    authDomain: firebaseConfig.authDomain || 'MISSING',
+    projectId: firebaseConfig.projectId || 'MISSING',
+    appId: firebaseConfig.appId ? firebaseConfig.appId.substring(0, 20) + '...' : 'MISSING'
+  });
+  console.log('=== END FIREBASE DEBUG ===');
 }
 
 // Firebase 앱 초기화
@@ -36,7 +48,9 @@ const app = initializeApp(firebaseConfig);
 
 // 서비스 초기화
 export const db = getFirestore(app);
-export const auth = getAuth(app);
+// Firebase Authentication 임시 비활성화 (CONFIGURATION_NOT_FOUND 오류 해결)
+// export const auth = getAuth(app);
+export const auth = null; // 임시로 null로 설정
 export const storage = getStorage(app);
 
 // Analytics 초기화 (클라이언트 측에서만)

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Users, AlertCircle, MoreVertical, Edit2, Trash2 } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
+import { Plus, Users, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
 import { Comment, HelpRequest } from '@/types';
@@ -17,141 +17,104 @@ type User = {
 };
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
+import { createHelpRequest, deleteHelpRequest } from '@/lib/firebase/helpRequests';
 
 
 
 export default function HelpPage() {
   const { user } = useAuthStore();
-  const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
+  const { helpRequests, setHelpRequests, loadAllData } = useAppStore();
   const [comments, setComments] = useState<Comment[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'open' | 'in_progress' | 'completed'>('all');
   const [newRequest, setNewRequest] = useState({ title: '', description: '', target_audience: 'all' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{title?: string, description?: string, target_audience?: string}>({});
   const [editingRequest, setEditingRequest] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
 
-  const filteredRequests = helpRequests.filter(request => 
-    selectedStatus === 'all' || request.status === selectedStatus
-  );
+  const filteredRequests = helpRequests;
+
+  const validateForm = () => {
+    const newErrors: {title?: string, description?: string, target_audience?: string} = {};
+    
+    if (!newRequest.title.trim()) {
+      newErrors.title = '제목을 입력해주세요.';
+    }
+    if (!newRequest.description.trim()) {
+      newErrors.description = '설명을 입력해주세요.';
+    }
+    if (!newRequest.target_audience) {
+      newErrors.target_audience = '도움을 요청할 대상을 선택해주세요.';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmitRequest = async () => {
-    if (!user || !newRequest.title.trim() || !newRequest.description.trim()) return;
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
     
-    const request = {
-      id: Date.now().toString(),
-      title: newRequest.title,
-      description: newRequest.description,
-      status: 'open' as const,
-      requester_id: user.id,
-      requester: user,
-      target_audience: newRequest.target_audience,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    if (!validateForm()) {
+      return;
+    }
     
-    setHelpRequests([request, ...helpRequests]);
-    setNewRequest({ title: '', description: '', target_audience: 'all' });
-    setShowForm(false);
-
-    // 푸시 알림 발송
-    const notificationService = NotificationService.getInstance();
-    await notificationService.notifyNewHelpRequest(
-      user.name,
-      newRequest.title,
-      newRequest.target_audience
-    );
-  };
-
-  const handleOfferHelp = (requestId: string) => {
-    if (!user) return;
+    setIsSubmitting(true);
+    setErrors({});
     
-    setHelpRequests(prev => prev.map(request => 
-      request.id === requestId 
-        ? { 
-            ...request, 
-            status: 'in_progress' as const,
-            helper_id: user.id,
-            helper: user,
-            updated_at: new Date().toISOString()
-          }
-        : request
-    ));
-  };
+    try {
+      // Firebase에 저장
+      const requestId = await createHelpRequest({
+        title: newRequest.title,
+        description: newRequest.description,
+        requester_id: user.id,
+        requester: user,
+        target_audience: newRequest.target_audience,
+      });
 
-  const handleCompleteHelp = (requestId: string) => {
-    setHelpRequests(prev => prev.map(request => 
-      request.id === requestId 
-        ? { 
-            ...request, 
-            status: 'completed' as const,
-            updated_at: new Date().toISOString()
-          }
-        : request
-    ));
-  };
+      // 로컬 상태 업데이트 (즉시 반영용)
+      const request = {
+        id: requestId,
+        title: newRequest.title,
+        description: newRequest.description,
+        requester_id: user.id,
+        requester: user,
+        target_audience: newRequest.target_audience,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      setHelpRequests([request, ...helpRequests]);
+      setNewRequest({ title: '', description: '', target_audience: 'all' });
+      setShowForm(false);
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'open':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case 'in_progress':
-        return <Clock className="w-5 h-5 text-yellow-500" />;
-      case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      default:
-        return null;
+      // 푸시 알림 발송
+      const notificationService = NotificationService.getInstance();
+      await notificationService.notifyNewHelpRequest(
+        user.name,
+        newRequest.title,
+        newRequest.target_audience
+      );
+    } catch (error) {
+      console.error('도움 요청 저장 실패:', error);
+      alert('도움 요청 저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'open':
-        return '도움 요청';
-      case 'in_progress':
-        return '진행 중';
-      case 'completed':
-        return '완료됨';
-      default:
-        return '';
-    }
-  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'bg-red-100 text-red-800';
-      case 'in_progress':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   const getTargetAudienceOptions = () => {
-    if (!user) return [];
-    
-    const options = [{ value: 'all', label: '모두에게' }];
-    
-    if (user.role === 'dad') {
-      options.push(
-        { value: 'eldest', label: '장남에게' },
-        { value: 'youngest', label: '막둥이에게' }
-      );
-    } else if (user.role === 'eldest') {
-      options.push(
-        { value: 'dad', label: '아빠에게' },
-        { value: 'youngest', label: '막둥이에게' }
-      );
-    } else if (user.role === 'youngest') {
-      options.push(
-        { value: 'dad', label: '아빠에게' },
-        { value: 'eldest', label: '형에게' }
-      );
-    }
-    
-    return options;
+    // 모든 가족 구성원을 항상 표시
+    return [
+      { value: 'all', label: '모두에게' },
+      { value: 'dad', label: '아빠에게' },
+      { value: 'eldest', label: '장남에게' },
+      { value: 'youngest', label: '막둥이에게' }
+    ];
   };
 
   const getTargetAudienceLabel = (targetAudience: string) => {
@@ -194,15 +157,34 @@ export default function HelpPage() {
     setShowDropdown(null);
   };
 
-  const handleDeleteRequest = (requestId: string) => {
+  const handleDeleteRequest = async (requestId: string) => {
     if (window.confirm('정말 이 도움 요청을 삭제하시겠습니까?')) {
-      setHelpRequests(helpRequests.filter(r => r.id !== requestId));
-      setShowDropdown(null);
+      try {
+        // Firebase에서 삭제
+        await deleteHelpRequest(requestId);
+        
+        // 로컬 상태 업데이트
+        setHelpRequests(helpRequests.filter(r => r.id !== requestId));
+        setShowDropdown(null);
+      } catch (error) {
+        console.error('도움 요청 삭제 실패:', error);
+        alert('도움 요청 삭제에 실패했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
   const handleUpdateRequest = async () => {
-    if (!user || !newRequest.title.trim() || !newRequest.description.trim() || !editingRequest) return;
+    if (!user || !editingRequest) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setErrors({});
     
     const updatedRequests = helpRequests.map(request => 
       request.id === editingRequest 
@@ -220,11 +202,16 @@ export default function HelpPage() {
     setNewRequest({ title: '', description: '', target_audience: 'all' });
     setShowForm(false);
     setEditingRequest(null);
+    setIsSubmitting(false);
   };
 
   const canEditRequest = (request: { requester_id: string }) => {
     return user && (user.role === 'dad' || user.id === request.requester_id);
   };
+
+  useEffect(() => {
+    loadAllData();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -249,28 +236,6 @@ export default function HelpPage() {
         </button>
       </div>
 
-      {/* 상태 필터 */}
-      <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-600">상태:</span>
-        {[
-          { key: 'all', label: '전체' },
-          { key: 'open', label: '요청 중' },
-          { key: 'in_progress', label: '진행 중' },
-          { key: 'completed', label: '완료됨' },
-        ].map((filter) => (
-          <button
-            key={filter.key}
-            onClick={() => setSelectedStatus(filter.key as 'all' | 'open' | 'in_progress' | 'completed')}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-              selectedStatus === filter.key
-                ? 'bg-orange-500 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
 
       {/* 요청 폼 */}
       {showForm && (
@@ -279,54 +244,124 @@ export default function HelpPage() {
             {editingRequest ? '도움 요청 수정' : '도움 요청하기'}
           </h3>
           <div className="space-y-4">
-            {/* 대상 선택 */}
+            {/* 요청자 표시 */}
+            {user && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">요청자</label>
+                <div className="flex items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <Avatar user={user} size="sm" />
+                  <div className="ml-3">
+                    <div className="font-medium text-sm text-gray-900">{user.name}</div>
+                    <div className={`text-xs px-2 py-0.5 rounded-full ${getRoleColor(user.role)}`}>
+                      {getRoleName(user.role)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 도움 대상 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">누구에게 도움을 요청할까요?</label>
-              <div className="flex flex-wrap gap-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                도움 대상 선택 <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-3">누구에게 도움을 요청할지 선택해주세요.</p>
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 {getTargetAudienceOptions().map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => setNewRequest({ ...newRequest, target_audience: option.value })}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    onClick={() => {
+                      setNewRequest({ ...newRequest, target_audience: option.value });
+                      if (errors.target_audience) setErrors({ ...errors, target_audience: undefined });
+                    }}
+                    className={`px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center min-h-[44px] ${
                       newRequest.target_audience === option.value
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-orange-500 text-white shadow-lg transform scale-105 border-2 border-orange-600'
+                        : 'bg-white text-gray-700 hover:bg-orange-50 active:scale-95 border-2 border-gray-200 hover:border-orange-300'
                     }`}
                   >
                     {option.label}
                   </button>
                 ))}
               </div>
+              {errors.target_audience && (
+                <p className="mt-2 text-sm text-red-600">{errors.target_audience}</p>
+              )}
             </div>
-            <input
-              type="text"
-              placeholder="어떤 도움이 필요한지 제목을 입력하세요"
-              value={newRequest.title}
-              onChange={(e) => setNewRequest({ ...newRequest, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-orange-500 outline-none"
-            />
-            <textarea
-              placeholder="구체적으로 어떤 도움이 필요한지 설명해주세요"
-              value={newRequest.description}
-              onChange={(e) => setNewRequest({ ...newRequest, description: e.target.value })}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-orange-500 outline-none resize-none"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                도움 요청 제목 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="예: 문서 작업 도와주세요, 기술 지원 필요해요"
+                value={newRequest.title}
+                onChange={(e) => {
+                  setNewRequest({ ...newRequest, title: e.target.value });
+                  if (errors.title) setErrors({ ...errors, title: undefined });
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors ${
+                  errors.title 
+                    ? 'border-red-300 focus:border-red-500 bg-red-50' 
+                    : 'border-gray-300 focus:border-orange-500'
+                }`}
+              />
+              {errors.title && (
+                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                상세 설명 <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                placeholder="구체적으로 어떤 도움이 필요한지, 언제까지 필요한지 등을 자세히 설명해주세요."
+                value={newRequest.description}
+                onChange={(e) => {
+                  setNewRequest({ ...newRequest, description: e.target.value });
+                  if (errors.description) setErrors({ ...errors, description: undefined });
+                }}
+                rows={4}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none resize-none transition-colors ${
+                  errors.description 
+                    ? 'border-red-300 focus:border-red-500 bg-red-50' 
+                    : 'border-gray-300 focus:border-orange-500'
+                }`}
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
+            </div>
             <div className="flex space-x-2">
               <button
                 onClick={editingRequest ? handleUpdateRequest : handleSubmitRequest}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                disabled={isSubmitting}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm min-h-[40px] transition-all duration-200 ${
+                  isSubmitting
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95 shadow-md'
+                }`}
               >
-                {editingRequest ? '수정하기' : '요청하기'}
+                {isSubmitting 
+                  ? (editingRequest ? '수정 중...' : '등록 중...')
+                  : (editingRequest ? '수정하기' : '요청하기')
+                }
               </button>
               <button
                 onClick={() => {
                   setShowForm(false);
                   setNewRequest({ title: '', description: '', target_audience: 'all' });
                   setEditingRequest(null);
+                  setErrors({});
+                  setIsSubmitting(false);
                 }}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                disabled={isSubmitting}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm min-h-[40px] transition-all duration-200 ${
+                  isSubmitting
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400 active:scale-95'
+                }`}
               >
                 취소
               </button>
@@ -341,14 +376,16 @@ export default function HelpPage() {
           <div className="family-card text-center py-8">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-500">
-              {selectedStatus === 'all' ? '도움 요청이 없습니다' : `${getStatusText(selectedStatus)} 요청이 없습니다`}
+              도움 요청이 없습니다
             </p>
             <p className="text-sm text-gray-400 mt-1">
               가족에게 도움이 필요할 때 언제든 요청해보세요!
             </p>
           </div>
         ) : (
-          filteredRequests.map((request) => (
+          filteredRequests
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .map((request) => (
             <div key={request.id} className="family-card">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3">
@@ -365,12 +402,6 @@ export default function HelpPage() {
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(request.status)}
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                      {getStatusText(request.status)}
-                    </span>
-                  </div>
 
                   {/* 수정/삭제 메뉴 */}
                   {canEditRequest(request) && (
@@ -430,39 +461,6 @@ export default function HelpPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-2">{request.title}</h2>
               <p className="text-gray-700 mb-4 leading-relaxed">{request.description}</p>
               
-              {request.helper && (
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">
-                      도움 제공: <span className="font-medium">{request.helper.name}</span>
-                      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(request.helper.role)}`}>
-                        {getRoleName(request.helper.role)}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex space-x-2">
-                {request.status === 'open' && user && user.id !== request.requester_id && (
-                  <button
-                    onClick={() => handleOfferHelp(request.id)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    도와주기
-                  </button>
-                )}
-                
-                {request.status === 'in_progress' && user && (user.id === request.requester_id || user.id === request.helper_id) && (
-                  <button
-                    onClick={() => handleCompleteHelp(request.id)}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    완료 처리
-                  </button>
-                )}
-              </div>
               
               <CommentSection
                 targetType="help"

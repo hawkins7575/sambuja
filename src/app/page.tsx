@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MessageCircle, Users, Calendar, Target, ArrowRight, Clock, CheckCircle } from 'lucide-react';
 import { useAuthStore, useAppStore } from '@/lib/store';
 import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
@@ -47,17 +47,17 @@ export default function Home() {
   const { user, setUser, users, loadUsers } = useAuthStore();
   const { posts, events, goals, helpRequests, loadAllData, isDataLoading } = useAppStore();
 
-  const loadData = useCallback(async () => {
-    try {
-      await Promise.all([loadAllData(), loadUsers()]);
-    } catch (error) {
-      console.error('Failed to load initial data:', error);
-    }
-  }, [loadAllData, loadUsers]);
-
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        await Promise.all([loadAllData(), loadUsers()]);
+      } catch (error) {
+        console.error('Failed to load initial data:', error);
+      }
+    };
+    
     loadData();
-  }, [loadData]);
+  }, []);
 
   const handleUserSelect = (selectedUser: { id: string; name: string; role: 'dad' | 'eldest' | 'youngest'; email: string; created_at: string }) => {
     setUser(selectedUser);
@@ -109,7 +109,8 @@ export default function Home() {
                       alt={member.name} 
                       width={64} 
                       height={64} 
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-cover"
+                      priority={member.role === 'eldest'}
                     />
                   </div>
                   <div className="text-center">

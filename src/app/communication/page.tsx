@@ -8,6 +8,7 @@ import { getRoleName, getRoleColor, getRelativeTime } from '@/lib/utils';
 import CommentSection from '@/components/shared/CommentSection';
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
+import { createPost, deletePost } from '@/lib/firebase/posts';
 
 
 export default function CommunicationPage() {
@@ -23,7 +24,7 @@ export default function CommunicationPage() {
 
   useEffect(() => {
     loadAllData();
-  }, [loadAllData]);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -54,29 +55,45 @@ export default function CommunicationPage() {
     
     const selectedAuthor = users.find(member => member.id === newPost.author_id) || user;
     
-    const post = {
-      id: Date.now().toString(),
-      title: newPost.title,
-      content: newPost.content,
-      author_id: newPost.author_id,
-      author: selectedAuthor,
-      target_audience: newPost.target_audience,
-      category: 'communication' as const,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    
-    setPosts([post, ...posts]);
-    setNewPost({ title: '', content: '', target_audience: 'all', author_id: '' });
-    setShowWriteForm(false);
+    try {
+      // Firebase에 저장
+      const postId = await createPost({
+        title: newPost.title,
+        content: newPost.content,
+        author_id: newPost.author_id,
+        author: selectedAuthor,
+        target_audience: newPost.target_audience,
+        category: 'communication' as const,
+      });
 
-    // 푸시 알림 발송
-    const notificationService = NotificationService.getInstance();
-    await notificationService.notifyNewPost(
-      selectedAuthor.name,
-      newPost.title,
-      newPost.target_audience
-    );
+      // 로컬 상태 업데이트 (즉시 반영용)
+      const post = {
+        id: postId,
+        title: newPost.title,
+        content: newPost.content,
+        author_id: newPost.author_id,
+        author: selectedAuthor,
+        target_audience: newPost.target_audience,
+        category: 'communication' as const,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      setPosts([post, ...posts]);
+      setNewPost({ title: '', content: '', target_audience: 'all', author_id: '' });
+      setShowWriteForm(false);
+
+      // 푸시 알림 발송
+      const notificationService = NotificationService.getInstance();
+      await notificationService.notifyNewPost(
+        selectedAuthor.name,
+        newPost.title,
+        newPost.target_audience
+      );
+    } catch (error) {
+      console.error('게시글 저장 실패:', error);
+      alert('게시글 저장에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const getTargetAudienceOptions = (authorId: string) => {
@@ -146,10 +163,19 @@ export default function CommunicationPage() {
     setShowDropdown(null);
   };
 
-  const handleDeletePost = (postId: string) => {
+  const handleDeletePost = async (postId: string) => {
     if (window.confirm('정말 이 글을 삭제하시겠습니까?')) {
-      setPosts(posts.filter(p => p.id !== postId));
-      setShowDropdown(null);
+      try {
+        // Firebase에서 삭제
+        await deletePost(postId);
+        
+        // 로컬 상태 업데이트
+        setPosts(posts.filter(p => p.id !== postId));
+        setShowDropdown(null);
+      } catch (error) {
+        console.error('게시글 삭제 실패:', error);
+        alert('게시글 삭제에 실패했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
@@ -182,7 +208,18 @@ export default function CommunicationPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <button
-          onClick={() => setShowWriteForm(true)}
+          onClick={() => {
+            // 글쓰기 폼 열 때 로그인된 사용자를 자동으로 작성자로 설정
+            if (user) {
+              setNewPost({ 
+                title: '', 
+                content: '', 
+                target_audience: 'all', 
+                author_id: user.id 
+              });
+            }
+            setShowWriteForm(true);
+          }}
           className="flex items-center space-x-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition-all duration-200 font-semibold text-sm min-h-[40px] shadow-md"
         >
           <Plus className="w-4 h-4" />
@@ -236,34 +273,46 @@ export default function CommunicationPage() {
             {editingPost ? '글 수정' : '새 글 작성'}
           </h3>
           <div className="space-y-4">
-            {/* 작성자 선택 */}
+            {/* 작성자 표시 */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">작성자</label>
-              <div className="flex flex-wrap gap-2">
-                {users.map((member) => (
+              {newPost.author_id ? (
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center space-x-3">
+                    <Avatar 
+                      user={users.find(member => member.id === newPost.author_id) || user} 
+                      size="sm" 
+                    />
+                    <div>
+                      <div className="font-medium text-sm text-gray-900">
+                        {users.find(member => member.id === newPost.author_id)?.name || user?.name}
+                      </div>
+                      <div className={`text-xs px-2 py-0.5 rounded-full ${getRoleColor(users.find(member => member.id === newPost.author_id)?.role || user?.role || 'dad')}`}>
+                        {getRoleName(users.find(member => member.id === newPost.author_id)?.role || user?.role || 'dad')}
+                      </div>
+                    </div>
+                  </div>
                   <button
-                    key={member.id}
                     type="button"
                     onClick={() => {
-                      setNewPost({ ...newPost, author_id: member.id, target_audience: 'all' });
+                      // 작성자 변경 옵션 토글
+                      const currentAuthorId = newPost.author_id;
+                      const nextUserId = users.find((member, index) => {
+                        const currentIndex = users.findIndex(u => u.id === currentAuthorId);
+                        return index === (currentIndex + 1) % users.length;
+                      })?.id || users[0]?.id || '';
+                      setNewPost({ ...newPost, author_id: nextUserId, target_audience: 'all' });
                     }}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 min-h-[36px] ${
-                      newPost.author_id === member.id
-                        ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95'
-                    }`}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-100 transition-colors"
                   >
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      newPost.author_id === member.id
-                        ? 'bg-white text-blue-500'
-                        : 'bg-gray-300 text-gray-600'
-                    }`}>
-                      {member.name.charAt(0)}
-                    </div>
-                    <span className="whitespace-nowrap">{member.name}</span>
+                    변경
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                  로그인이 필요합니다.
+                </div>
+              )}
             </div>
 
             {/* 대상 선택 */}
@@ -338,7 +387,9 @@ export default function CommunicationPage() {
             </p>
           </div>
         ) : (
-          filteredPosts.map((post) => (
+          filteredPosts
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .map((post) => (
             <div key={post.id} className="family-card hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3">

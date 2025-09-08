@@ -19,6 +19,7 @@ type User = {
 };
 import Avatar from '@/components/shared/Avatar';
 import { NotificationService } from '@/lib/notifications';
+import { createGoal, deleteGoal } from '@/lib/firebase/goals';
 
 
 export default function GoalsPage() {
@@ -71,26 +72,43 @@ export default function GoalsPage() {
   });
 
 
-  const handleSubmitGoal = () => {
+  const handleSubmitGoal = async () => {
     if (!user || !newGoal.title.trim() || !newGoal.owner_id) return;
     
     const selectedOwner = familyMembers.find(member => member.id === newGoal.owner_id) || user;
     
-    const goal = {
-      id: Date.now().toString(),
-      title: newGoal.title,
-      description: newGoal.description,
-      target_date: newGoal.target_date,
-      completed: false,
-      owner_id: newGoal.owner_id,
-      owner: selectedOwner,
-      progress: 0,
-      created_at: new Date().toISOString(),
-    };
-    
-    setGoals([goal, ...goals]);
-    setNewGoal({ title: '', description: '', target_date: '', owner_id: '' });
-    setShowForm(false);
+    try {
+      // Firebase에 저장
+      const goalId = await createGoal({
+        title: newGoal.title,
+        description: newGoal.description,
+        target_date: newGoal.target_date,
+        completed: false,
+        progress: 0,
+        owner_id: newGoal.owner_id,
+        owner: selectedOwner,
+      });
+
+      // 로컬 상태 업데이트 (즉시 반영용)
+      const goal = {
+        id: goalId,
+        title: newGoal.title,
+        description: newGoal.description,
+        target_date: newGoal.target_date,
+        completed: false,
+        owner_id: newGoal.owner_id,
+        owner: selectedOwner,
+        progress: 0,
+        created_at: new Date().toISOString(),
+      };
+      
+      setGoals([goal, ...goals]);
+      setNewGoal({ title: '', description: '', target_date: '', owner_id: '' });
+      setShowForm(false);
+    } catch (error) {
+      console.error('목표 저장 실패:', error);
+      alert('목표 저장에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   // const toggleGoalCompletion = (goalId: string) => {
@@ -193,10 +211,19 @@ export default function GoalsPage() {
     setShowDropdown(null);
   };
 
-  const handleDeleteGoal = (goalId: string) => {
+  const handleDeleteGoal = async (goalId: string) => {
     if (window.confirm('정말 이 목표를 삭제하시겠습니까?')) {
-      setGoals(goals.filter(g => g.id !== goalId));
-      setShowDropdown(null);
+      try {
+        // Firebase에서 삭제
+        await deleteGoal(goalId);
+        
+        // 로컬 상태 업데이트
+        setGoals(goals.filter(g => g.id !== goalId));
+        setShowDropdown(null);
+      } catch (error) {
+        console.error('목표 삭제 실패:', error);
+        alert('목표 삭제에 실패했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
@@ -259,7 +286,18 @@ export default function GoalsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            // 목표 설정 폼 열 때 로그인된 사용자를 자동으로 목표 소유자로 설정
+            if (user) {
+              setNewGoal({ 
+                title: '', 
+                description: '', 
+                target_date: '', 
+                owner_id: user.id 
+              });
+            }
+            setShowForm(true);
+          }}
           className="flex items-center space-x-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -321,28 +359,46 @@ export default function GoalsPage() {
             {editingGoal ? '목표 수정' : '새 목표 설정'}
           </h3>
           <div className="space-y-4">
-            {/* 목표 대상자 선택 */}
+            {/* 목표 소유자 표시 */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">대상</label>
-              <div className="flex flex-wrap gap-2">
-                {familyMembers.map((member) => (
-                  <button
-                    key={member.id}
-                    type="button"
-                    onClick={() => setNewGoal({ ...newGoal, owner_id: member.id })}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      newGoal.owner_id === member.id
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <div className="w-6 h-6 rounded-full overflow-hidden">
-                      <Avatar user={member} size="xs" />
+              <label className="block text-xs font-medium text-gray-700 mb-2">목표 소유자</label>
+              {newGoal.owner_id ? (
+                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="flex items-center space-x-3">
+                    <Avatar 
+                      user={familyMembers.find(member => member.id === newGoal.owner_id) || user} 
+                      size="sm" 
+                    />
+                    <div>
+                      <div className="font-medium text-sm text-gray-900">
+                        {familyMembers.find(member => member.id === newGoal.owner_id)?.name || user?.name}
+                      </div>
+                      <div className={`text-xs px-2 py-0.5 rounded-full ${getRoleColor(familyMembers.find(member => member.id === newGoal.owner_id)?.role || user?.role || 'dad')}`}>
+                        {getRoleName(familyMembers.find(member => member.id === newGoal.owner_id)?.role || user?.role || 'dad')}
+                      </div>
                     </div>
-                    <span>{member.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // 소유자 변경 옵션 토글
+                      const currentOwnerId = newGoal.owner_id;
+                      const nextUserId = familyMembers.find((member, index) => {
+                        const currentIndex = familyMembers.findIndex(u => u.id === currentOwnerId);
+                        return index === (currentIndex + 1) % familyMembers.length;
+                      })?.id || familyMembers[0]?.id || '';
+                      setNewGoal({ ...newGoal, owner_id: nextUserId });
+                    }}
+                    className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-1 rounded hover:bg-purple-100 transition-colors"
+                  >
+                    변경
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                  로그인이 필요합니다.
+                </div>
+              )}
             </div>
             <input
               type="text"
@@ -406,7 +462,9 @@ export default function GoalsPage() {
             </p>
           </div>
         ) : (
-          filteredGoals.map((goal) => {
+          filteredGoals
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .map((goal) => {
             const daysLeft = goal.target_date ? getDaysUntilTarget(goal.target_date) : null;
             const isOverdue = daysLeft !== null && daysLeft < 0;
             const isOwner = user && user.id === goal.owner_id;

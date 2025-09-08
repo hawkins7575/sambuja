@@ -54,10 +54,46 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   
   loadUsers: async () => {
     try {
+      const state = get();
+      if (state.users.length > 0) {
+        // 이미 로드된 경우 중복 호출 방지
+        return;
+      }
+
       const users = await getUsers();
       set({ users });
     } catch (error) {
-      console.error('Failed to load users:', error);
+      console.error('Failed to load users from Firebase, using fallback:', error);
+      
+      // Firebase 실패 시 기본 사용자 데이터 사용
+      const defaultUsers = [
+        {
+          id: '1',
+          name: '아빠',
+          email: 'dad@sambuja.com',
+          phone: '010-1234-5678',
+          role: 'dad' as const,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: '2', 
+          name: '짱남',
+          email: 'eldest@sambuja.com',
+          phone: '010-2345-6789',
+          role: 'eldest' as const,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: '3',
+          name: '막뚱이', 
+          email: 'youngest@sambuja.com',
+          phone: '010-3456-7890',
+          role: 'youngest' as const,
+          created_at: new Date().toISOString(),
+        }
+      ];
+      
+      set({ users: defaultUsers });
     }
   },
   
@@ -71,8 +107,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true });
       
       try {
-        // 데이터베이스 초기화 (한 번만) - 실패해도 계속 진행
+        // 데이터베이스 초기화 시도 (문제 발생 시 계속 진행)
         await initializeDatabase();
+        console.log('Database initialization completed');
       } catch (dbError) {
         console.warn('Database initialization failed, continuing with app initialization:', dbError);
       }
@@ -81,7 +118,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // 사용자 목록 로드 - 실패해도 계속 진행
         await get().loadUsers();
       } catch (usersError) {
-        console.warn('Users loading failed, continuing with empty user list:', usersError);
+        console.warn('Users loading failed, continuing with fallback data:', usersError);
       }
       
       set({ isLoading: false, isInitialized: true });
@@ -121,11 +158,24 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       set({ isDataLoading: true });
       
+      // Firebase 데이터 로드 시도
       const [posts, events, goals, helpRequests] = await Promise.all([
-        getPosts().catch(err => { console.warn('Failed to load posts:', err); return []; }),
-        getEvents().catch(err => { console.warn('Failed to load events:', err); return []; }), 
-        getGoals().catch(err => { console.warn('Failed to load goals:', err); return []; }),
-        getHelpRequests().catch(err => { console.warn('Failed to load help requests:', err); return []; })
+        getPosts().catch(error => {
+          console.warn('Failed to load posts:', error);
+          return [];
+        }),
+        getEvents().catch(error => {
+          console.warn('Failed to load events:', error);
+          return [];
+        }),
+        getGoals().catch(error => {
+          console.warn('Failed to load goals:', error);
+          return [];
+        }),
+        getHelpRequests().catch(error => {
+          console.warn('Failed to load help requests:', error);
+          return [];
+        })
       ]);
       
       set({ 
@@ -137,7 +187,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
     } catch (error) {
       console.error('Failed to load data:', error);
-      set({ isDataLoading: false });
+      // 실패 시 빈 배열로 초기화
+      set({ 
+        posts: [], 
+        events: [], 
+        goals: [], 
+        helpRequests: [], 
+        isDataLoading: false 
+      });
     }
   },
   

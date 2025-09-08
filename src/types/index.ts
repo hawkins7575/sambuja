@@ -62,11 +62,8 @@ export interface HelpRequest {
   title: string;
   description: string;
   target_audience: 'all' | 'dad' | 'eldest' | 'youngest' | string;
-  status: 'open' | 'in_progress' | 'completed';
   requester_id: string;
   requester: User;
-  helper_id?: string;
-  helper?: User;
   created_at: string;
   updated_at: string;
 }
@@ -82,52 +79,6 @@ export interface ScheduleEvent {
   created_at: string;
 }
 
-export interface SharePost {
-  id: string;
-  title: string;
-  content: string;
-  type: 'general' | 'photo' | 'video' | 'document' | 'event' | 'location';
-  author_id: string;
-  author: User;
-  images?: string[];
-  location?: string;
-  event_date?: string;
-  event_time?: string;
-  tags: string[];
-  target_audience: 'all' | 'dad' | 'eldest' | 'youngest';
-  background_color?: string;
-  allow_comments: boolean;
-  is_pinned: boolean;
-  likes_count: number;
-  comments_count: number;
-  shares_count: number;
-  created_at: string;
-  updated_at: string;
-}
 
-export interface SharePostReaction {
-  id: string;
-  post_id: string;
-  user_id: string;
-  type: 'like' | 'love' | 'laugh' | 'surprise' | 'sad' | 'angry';
-  created_at: string;
-}
 
-export interface SharePostBookmark {
-  id: string;
-  post_id: string;
-  user_id: string;
-  created_at: string;
-}
 
-export interface ShareComment {
-  id: string;
-  post_id: string;
-  content: string;
-  author_id: string;
-  author: User;
-  parent_id?: string;
-  replies?: ShareComment[];
-  created_at: string;
-  updated_at: string;
-}
