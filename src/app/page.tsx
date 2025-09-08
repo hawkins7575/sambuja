@@ -220,7 +220,6 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      {getStatusIcon(request.status)}
                       <span className="text-xs text-gray-500">{getRelativeTime(request.created_at)}</span>
                     </div>
                   </div>

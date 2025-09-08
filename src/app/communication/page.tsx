@@ -280,7 +280,7 @@ export default function CommunicationPage() {
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center space-x-3">
                     <Avatar 
-                      user={users.find(member => member.id === newPost.author_id) || user} 
+                      user={users.find(member => member.id === newPost.author_id) || user!} 
                       size="sm" 
                     />
                     <div>

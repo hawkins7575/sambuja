@@ -366,7 +366,7 @@ export default function GoalsPage() {
                 <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
                   <div className="flex items-center space-x-3">
                     <Avatar 
-                      user={familyMembers.find(member => member.id === newGoal.owner_id) || user} 
+                      user={familyMembers.find(member => member.id === newGoal.owner_id) || user!} 
                       size="sm" 
                     />
                     <div>
